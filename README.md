@@ -1,11 +1,10 @@
-
+Hi! My name is Daniel Arthur Ofori.
 I'm a passionate data analyst/scientist with a knack for uncovering insights and driving decision-making through data-driven strategies. Here's a bit more about me:
 
 👀 I’m interested in: Exploring innovative ways to extract meaningful insights from complex datasets, leveraging machine learning techniques to solve real-world problems, 
 and staying updated on the latest trends in data analytics and visualization.
 
-🌱 I’m currently learning: Deepening my understanding of advanced statistical methods, honing my skills in Python and R programming languages, 
-and diving deeper into cloud-based data solutions like AWS and Google Cloud Platform.
+🌱 I’m currently learning: Deepening my understanding of advanced statistical methods, honing my skills in Python and R programming languages, mastering C# and SQL, and delving deeper into tools such as Power BI, Tableau, and Spark.
 
 💞️ I’m looking to collaborate on: Exciting projects that involve data analysis, predictive modeling, or any endeavor where data plays a central role. 
 Whether it's a research initiative, a business analytics challenge, or a data-driven application, count me in!
