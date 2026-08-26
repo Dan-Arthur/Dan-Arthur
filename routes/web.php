@@ -19,6 +19,7 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\LibraryController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\SmsAlertController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ResultController;
 use App\Http\Controllers\TimetableController;
@@ -343,6 +344,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('messages/{message}/reply', [MessageController::class, 'reply'])->name('messages.reply');
     Route::patch('messages/{message}/star', [MessageController::class, 'star'])->name('messages.star');
     Route::patch('messages/{message}/trash', [MessageController::class, 'trash'])->name('messages.trash');
+
+    // ============================================================
+    // BULK SMS ALERTS
+    // ============================================================
+    Route::get('sms', [SmsAlertController::class, 'index'])->name('sms.index');
+    Route::get('sms/create', [SmsAlertController::class, 'create'])->name('sms.create');
+    Route::post('sms', [SmsAlertController::class, 'store'])->name('sms.store');
+    Route::get('sms/{smsAlert}', [SmsAlertController::class, 'show'])->name('sms.show');
 
     // ============================================================
     // AUDIT LOG
