@@ -40,7 +40,7 @@ return new class extends Migration
         Schema::create('fee_structure_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('fee_structure_id')->constrained('fee_structures')->noActionOnDelete();
-            $table->foreignId('fee_category_id')->constrained('fee_categories');
+            $table->foreignId('fee_category_id')->nullable()->constrained('fee_categories')->noActionOnDelete();
             $table->string('name', 200);
             $table->decimal('amount', 12, 2);
             $table->boolean('is_mandatory')->default(true);
