@@ -278,6 +278,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('library/books/create', [LibraryController::class, 'create'])->name('library.books.create');
     Route::post('library/books', [LibraryController::class, 'store'])->name('library.books.store');
     Route::get('library/books/{book}', [LibraryController::class, 'show'])->name('library.books.show');
+    Route::get('library/books/{book}/edit', [LibraryController::class, 'edit'])->name('library.books.edit');
+    Route::put('library/books/{book}', [LibraryController::class, 'update'])->name('library.books.update');
 
     // ============================================================
     // TRANSPORT

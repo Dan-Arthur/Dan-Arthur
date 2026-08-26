@@ -128,6 +128,47 @@ class LibraryController extends Controller
         return view('library.show', compact('book'));
     }
 
+    public function edit(Book $book): View
+    {
+        abort_unless(auth()->user()->can('manage books'), 403);
+        abort_unless($book->school_id == auth()->user()->school_id, 403);
+
+        $schoolId   = auth()->user()->school_id;
+        $categories = BookCategory::where('school_id', $schoolId)->orderBy('name')->get();
+        $publishers = Publisher::where('school_id', $schoolId)->orderBy('name')->get();
+        $authors    = Author::where('school_id', $schoolId)->orderBy('name')->get();
+        $book->load('authors');
+
+        return view('library.edit', compact('book', 'categories', 'publishers', 'authors'));
+    }
+
+    public function update(Request $request, Book $book): RedirectResponse
+    {
+        abort_unless(auth()->user()->can('manage books'), 403);
+        abort_unless($book->school_id == auth()->user()->school_id, 403);
+
+        $validated = $request->validate([
+            'title'        => 'required|string|max:300',
+            'isbn'         => 'nullable|string|max:30',
+            'edition'      => 'nullable|string|max:50',
+            'publish_year' => 'nullable|integer|min:1800|max:' . (date('Y') + 1),
+            'language'     => 'nullable|string|max:50',
+            'category_id'  => 'nullable|exists:book_categories,id',
+            'publisher_id' => 'nullable|exists:publishers,id',
+            'location'     => 'nullable|string|max:100',
+            'author_ids'   => 'nullable|array',
+            'author_ids.*' => 'exists:authors,id',
+        ]);
+
+        $book->update($validated);
+
+        if (array_key_exists('author_ids', $validated)) {
+            $book->authors()->sync($validated['author_ids'] ?? []);
+        }
+
+        return redirect()->route('library.books.show', $book)->with('success', 'Book updated.');
+    }
+
     // ============================================================
     // LOANS
     // ============================================================

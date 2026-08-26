@@ -387,9 +387,9 @@
                         <tr>
                             <td class="font-medium">{{ $invoice->invoice_number }}</td>
                             <td>{{ $invoice->term?->name }}</td>
-                            <td>₦{{ number_format($invoice->total_amount, 0) }}</td>
-                            <td class="text-green-600">₦{{ number_format($invoice->amount_paid, 0) }}</td>
-                            <td class="{{ $invoice->balance > 0 ? 'text-red-600' : 'text-gray-500' }}">₦{{ number_format($invoice->balance, 0) }}</td>
+                            <td>{{ auth()->user()->school->currency_symbol ?? '₵' }}{{ number_format($invoice->total_amount, 0) }}</td>
+                            <td class="text-green-600">{{ auth()->user()->school->currency_symbol ?? '₵' }}{{ number_format($invoice->amount_paid, 0) }}</td>
+                            <td class="{{ $invoice->balance > 0 ? 'text-red-600' : 'text-gray-500' }}">{{ auth()->user()->school->currency_symbol ?? '₵' }}{{ number_format($invoice->balance, 0) }}</td>
                             <td><span class="badge {{ $invoice->status === 'paid' ? 'badge-success' : ($invoice->status === 'partial' ? 'badge-warning' : 'badge-danger') }}">{{ ucfirst($invoice->status) }}</span></td>
                         </tr>
                         @empty
