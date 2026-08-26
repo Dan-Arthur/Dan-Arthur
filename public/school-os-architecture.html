@@ -1,0 +1,1373 @@
+<title>School OS Architecture</title>
+<style>
+/* ── TOKENS ─────────────────────────────────────────────── */
+:root {
+  --bg:          #F8FAFC;
+  --bg2:         #F1F5F9;
+  --surface:     #FFFFFF;
+  --surface2:    #F8FAFC;
+  --border:      #E2E8F0;
+  --border2:     #CBD5E1;
+  --txt:         #0F172A;
+  --txt2:        #334155;
+  --muted:       #64748B;
+  --accent:      #2563EB;
+  --accent-soft: #EFF6FF;
+  --accent-txt:  #1D4ED8;
+  --success:     #16A34A;
+  --success-bg:  #F0FDF4;
+  --warn:        #D97706;
+  --warn-bg:     #FFFBEB;
+  --info:        #0369A1;
+  --info-bg:     #F0F9FF;
+  --mono:        'Courier New', 'Consolas', monospace;
+  --sans:        system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --sidebar-w:   240px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:          #0B1120;
+    --bg2:         #0F1829;
+    --surface:     #111827;
+    --surface2:    #1A2435;
+    --border:      #1E2D45;
+    --border2:     #263347;
+    --txt:         #E2E8F0;
+    --txt2:        #94A3B8;
+    --muted:       #475569;
+    --accent:      #3B82F6;
+    --accent-soft: rgba(59,130,246,0.12);
+    --accent-txt:  #60A5FA;
+    --success:     #22C55E;
+    --success-bg:  rgba(34,197,94,0.10);
+    --warn:        #F59E0B;
+    --warn-bg:     rgba(245,158,11,0.10);
+    --info:        #38BDF8;
+    --info-bg:     rgba(56,189,248,0.10);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg:          #0B1120;
+  --bg2:         #0F1829;
+  --surface:     #111827;
+  --surface2:    #1A2435;
+  --border:      #1E2D45;
+  --border2:     #263347;
+  --txt:         #E2E8F0;
+  --txt2:        #94A3B8;
+  --muted:       #475569;
+  --accent:      #3B82F6;
+  --accent-soft: rgba(59,130,246,0.12);
+  --accent-txt:  #60A5FA;
+  --success:     #22C55E;
+  --success-bg:  rgba(34,197,94,0.10);
+  --warn:        #F59E0B;
+  --warn-bg:     rgba(245,158,11,0.10);
+  --info:        #38BDF8;
+  --info-bg:     rgba(56,189,248,0.10);
+}
+
+/* ── RESET ───────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 15px; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--txt);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+a { color: var(--accent-txt); text-decoration: none; }
+a:hover { text-decoration: underline; }
+p { line-height: 1.7; }
+
+/* ── LAYOUT ──────────────────────────────────────────────── */
+.shell {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  grid-template-rows: auto 1fr;
+  min-height: 100vh;
+}
+
+/* Top bar */
+.topbar {
+  grid-column: 1 / -1;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo-mark {
+  width: 28px; height: 28px;
+  background: var(--accent);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 13px; color: #fff; letter-spacing: -0.5px;
+}
+.brand-name {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--txt);
+  letter-spacing: -0.3px;
+}
+.brand-sub {
+  font-size: 11px;
+  color: var(--muted);
+  font-family: var(--mono);
+  padding: 2px 6px;
+  background: var(--accent-soft);
+  color: var(--accent-txt);
+  border-radius: 4px;
+  margin-left: 4px;
+}
+.topbar-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 12px;
+  color: var(--muted);
+  font-family: var(--mono);
+}
+.build-dot {
+  width: 7px; height: 7px;
+  background: var(--success);
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 4px;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* Sidebar */
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 1.5rem 0;
+  position: sticky;
+  top: 52px;
+  height: calc(100vh - 52px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border2) transparent;
+}
+.nav-section-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0.8rem 1.25rem 0.3rem;
+}
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 1.25rem;
+  font-size: 12.5px;
+  color: var(--txt2);
+  transition: all 0.1s;
+  border-left: 2px solid transparent;
+}
+.nav-link:hover {
+  background: var(--accent-soft);
+  color: var(--accent-txt);
+  border-left-color: var(--accent);
+  text-decoration: none;
+}
+.nav-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex-shrink: 0;
+}
+.nav-dot.done { background: var(--success); }
+.nav-dot.active { background: var(--warn); }
+
+/* Main */
+.main {
+  padding: 2.5rem 3rem;
+  max-width: 900px;
+}
+
+/* ── TYPOGRAPHY ──────────────────────────────────────────── */
+.section { margin-bottom: 3.5rem; }
+.section-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent-txt);
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+.section-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--txt);
+  letter-spacing: -0.03em;
+  margin-bottom: 1rem;
+  text-wrap: balance;
+  line-height: 1.2;
+}
+.section-desc {
+  font-size: 0.9rem;
+  color: var(--txt2);
+  margin-bottom: 1.5rem;
+  max-width: 680px;
+}
+
+h1.hero-title {
+  font-size: 2.6rem;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 1.05;
+  text-wrap: balance;
+  color: var(--txt);
+  margin-bottom: 0.5rem;
+}
+.hero-sub {
+  font-size: 1rem;
+  color: var(--txt2);
+  max-width: 600px;
+  margin-bottom: 1.5rem;
+}
+
+/* ── COMPONENTS ──────────────────────────────────────────── */
+.pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--mono);
+}
+.pill-blue  { background: var(--accent-soft); color: var(--accent-txt); }
+.pill-green { background: var(--success-bg); color: var(--success); }
+.pill-warn  { background: var(--warn-bg); color: var(--warn); }
+.pill-info  { background: var(--info-bg); color: var(--info); }
+.pill-muted { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+
+/* Phase cards */
+.phases-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.phase-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.25rem;
+  position: relative;
+  overflow: hidden;
+}
+.phase-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--phase-color, var(--border2));
+}
+.phase-card.done::before { background: var(--success); }
+.phase-card.active::before {
+  background: linear-gradient(90deg, var(--accent), var(--success));
+  background-size: 200% 100%;
+  animation: shimmer 2.5s ease-in-out infinite;
+}
+.phase-card.upcoming::before { background: var(--border2); }
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.phase-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  margin-bottom: 0.4rem;
+}
+.phase-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--txt);
+  margin-bottom: 0.5rem;
+}
+.phase-items {
+  font-size: 11px;
+  color: var(--txt2);
+  line-height: 1.8;
+}
+.phase-progress {
+  margin-top: 0.75rem;
+  background: var(--bg2);
+  border-radius: 999px;
+  height: 4px;
+  overflow: hidden;
+}
+.phase-bar {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 1s ease;
+}
+.phase-card.done .phase-bar { background: var(--success); }
+.phase-card.upcoming .phase-bar { background: var(--muted); opacity: 0.4; }
+.phase-pct {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 0.4rem;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+}
+
+/* Tables */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.data-table th {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+}
+.data-table td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--txt2);
+  vertical-align: top;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: var(--accent-soft); }
+.mono { font-family: var(--mono); font-size: 12px; color: var(--txt); }
+.count { font-variant-numeric: tabular-nums; }
+.box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* KPI row */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.kpi {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+}
+.kpi-val {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--txt);
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.kpi-lab {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Credential block */
+.cred-block {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.cred-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.cred-row:last-child { border-bottom: none; }
+.cred-role { font-weight: 600; color: var(--txt); min-width: 120px; }
+.cred-email { font-family: var(--mono); font-size: 12px; color: var(--txt2); }
+.cred-pass { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+/* Domain tags for DB tables */
+.domain-section { margin-bottom: 1.25rem; }
+.domain-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+.table-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.table-tag {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 2px 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--txt2);
+}
+
+/* Stack row */
+.stack-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+.stack-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.875rem 1rem;
+}
+.stack-cat {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 4px;
+}
+.stack-val {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--txt);
+}
+
+/* Divider */
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 2.5rem 0;
+}
+
+/* Routes preview */
+.route-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.route-item {
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 1rem;
+  font-size: 12px;
+}
+.route-item:last-child { border-bottom: none; }
+.method {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 3px;
+  text-align: center;
+}
+.m-get { background: var(--info-bg); color: var(--info); }
+.m-post { background: var(--success-bg); color: var(--success); }
+.m-put { background: var(--warn-bg); color: var(--warn); }
+.m-del { background: rgba(239,68,68,0.1); color: #ef4444; }
+.route-path { font-family: var(--mono); font-size: 12px; color: var(--txt2); }
+
+/* ── RESPONSIVE ──────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .shell { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .main { padding: 1.5rem 1rem; }
+  .kpi-row { grid-template-columns: repeat(2, 1fr); }
+  h1.hero-title { font-size: 1.8rem; }
+  .phases-grid { grid-template-columns: 1fr; }
+}
+
+/* Focus */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; }
+}
+</style>
+
+<div class="shell">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-brand">
+      <div class="logo-mark">S</div>
+      <span class="brand-name">School OS</span>
+      <span class="brand-sub">v0.1-foundation</span>
+    </div>
+    <div class="topbar-meta">
+      <span><span class="build-dot"></span>Build OK</span>
+      <span>Laravel 12 · PHP 8.2 · SQL Server 2022</span>
+      <span id="buildDate"></span>
+    </div>
+  </header>
+
+  <!-- SIDEBAR NAV -->
+  <nav class="sidebar" aria-label="Document sections">
+    <div class="nav-section-label">Overview</div>
+    <a href="#status" class="nav-link"><span class="nav-dot done"></span>Build Status</a>
+    <a href="#stack" class="nav-link"><span class="nav-dot done"></span>Technology Stack</a>
+    <a href="#phases" class="nav-link"><span class="nav-dot active"></span>Phase Roadmap</a>
+    <a href="#database" class="nav-link"><span class="nav-dot done"></span>Database Schema</a>
+
+    <div class="nav-section-label">Architecture</div>
+    <a href="#modules" class="nav-link"><span class="nav-dot done"></span>Module Map</a>
+    <a href="#routes" class="nav-link"><span class="nav-dot done"></span>Routes</a>
+    <a href="#rbac" class="nav-link"><span class="nav-dot done"></span>Roles & Permissions</a>
+
+    <div class="nav-section-label">Setup</div>
+    <a href="#credentials" class="nav-link"><span class="nav-dot done"></span>Default Credentials</a>
+    <a href="#config" class="nav-link"><span class="nav-dot done"></span>Configuration</a>
+    <a href="#next" class="nav-link"><span class="nav-dot active"></span>Next Steps</a>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- HERO -->
+    <section class="section" id="overview">
+      <div class="section-eyebrow">Architecture Reference · August 2026</div>
+      <h1 class="hero-title">School OS<br>Foundation Build</h1>
+      <p class="hero-sub">
+        Enterprise-grade school management platform built on Laravel 12 and Microsoft SQL Server 2022.
+        One School. One Platform. One Source of Truth.
+      </p>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+        <span class="pill pill-green">✓ Phase 1 Complete</span>
+        <span class="pill pill-warn">⚡ Phase 2 In Progress</span>
+        <span class="pill pill-muted">77 Tables Created</span>
+        <span class="pill pill-muted">61 Models Generated</span>
+        <span class="pill pill-muted">10 Roles Seeded</span>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- BUILD STATUS -->
+    <section class="section" id="status">
+      <div class="section-eyebrow">Current State</div>
+      <div class="section-title">Build Status</div>
+
+      <div class="kpi-row">
+        <div class="kpi">
+          <div class="kpi-val">77</div>
+          <div class="kpi-lab">DB Tables</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-val">61</div>
+          <div class="kpi-lab">Models</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-val">10</div>
+          <div class="kpi-lab">Roles</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-val">80+</div>
+          <div class="kpi-lab">Permissions</div>
+        </div>
+      </div>
+
+      <div class="box">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Component</th>
+              <th>Status</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">Laravel Project</td>
+              <td><span class="pill pill-green">✓ Done</span></td>
+              <td>v12.68.0, PHP 8.2.12 via XAMPP</td>
+            </tr>
+            <tr>
+              <td class="mono">SQL Server Connection</td>
+              <td><span class="pill pill-green">✓ Done</span></td>
+              <td>Named pipe: <span class="mono">np:\\.\pipe\MSSQL$SQLDEV\sql\query</span></td>
+            </tr>
+            <tr>
+              <td class="mono">Database Migrations</td>
+              <td><span class="pill pill-green">✓ Done</span></td>
+              <td>77 tables, all FK constraints resolved</td>
+            </tr>
+            <tr>
+              <td class="mono">Authentication</td>
+              <td><span class="pill pill-green">✓ Done</span></td>
+              <td>Login/logout with history tracking</td>
+            </tr>
+            <tr>
+              <td class="mono">RBAC (Spatie)</td>
+              <td><span class="pill pill-green">✓ Done</span></td>
+              <td>10 roles, 80+ granular permissions</td>
+            </tr>
+            <tr>
+              <td class="mono">Seed Data</td>
+              <td><span class="pill pill-green">✓ Done</span></td>
+              <td>School, academic year, 3 terms, 5 users</td>
+            </tr>
+            <tr>
+              <td class="mono">Admin Layout</td>
+              <td><span class="pill pill-green">✓ Done</span></td>
+              <td>Collapsible sidebar, Tailwind v3, Alpine.js</td>
+            </tr>
+            <tr>
+              <td class="mono">Executive Dashboard</td>
+              <td><span class="pill pill-green">✓ Done</span></td>
+              <td>KPIs, Chart.js attendance trend, class distribution</td>
+            </tr>
+            <tr>
+              <td class="mono">Student Module</td>
+              <td><span class="pill pill-warn">⚡ Active</span></td>
+              <td>CRUD complete: index, create, show, edit, destroy</td>
+            </tr>
+            <tr>
+              <td class="mono">Frontend Assets</td>
+              <td><span class="pill pill-green">✓ Done</span></td>
+              <td>Vite build, Tailwind v3, Chart.js, Alpine.js</td>
+            </tr>
+            <tr>
+              <td class="mono">Admissions Module</td>
+              <td><span class="pill pill-muted">Pending</span></td>
+              <td>Schema ready, controller/views to build</td>
+            </tr>
+            <tr>
+              <td class="mono">Finance Module</td>
+              <td><span class="pill pill-muted">Pending</span></td>
+              <td>Full schema ready (fee_structures → receipts)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- TECH STACK -->
+    <section class="section" id="stack">
+      <div class="section-eyebrow">Technology</div>
+      <div class="section-title">Stack</div>
+
+      <div class="stack-grid">
+        <div class="stack-card">
+          <div class="stack-cat">Framework</div>
+          <div class="stack-val">Laravel 12.68</div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-cat">Language</div>
+          <div class="stack-val">PHP 8.2.12</div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-cat">Database</div>
+          <div class="stack-val">SQL Server 2022</div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-cat">DB Connection</div>
+          <div class="stack-val">Named Pipe</div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-cat">RBAC</div>
+          <div class="stack-val">Spatie v8.3</div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-cat">API Auth</div>
+          <div class="stack-val">Laravel Sanctum</div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-cat">Frontend</div>
+          <div class="stack-val">Tailwind v3</div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-cat">JS Framework</div>
+          <div class="stack-val">Alpine.js v3</div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-cat">Charts</div>
+          <div class="stack-val">Chart.js</div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-cat">Build Tool</div>
+          <div class="stack-val">Vite 7</div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-cat">PDF Engine</div>
+          <div class="stack-val">DomPDF 3.1</div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-cat">Excel</div>
+          <div class="stack-val">Maatwebsite 3.1</div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- PHASE ROADMAP -->
+    <section class="section" id="phases">
+      <div class="section-eyebrow">Development Plan</div>
+      <div class="section-title">Phase Roadmap</div>
+      <p class="section-desc">Seven phases from Foundation to SaaS Platform. Phase 1 is complete. Phases 2–3 are the current build focus.</p>
+
+      <div class="phases-grid">
+
+        <div class="phase-card done">
+          <div class="phase-num">PHASE 01</div>
+          <div class="phase-name">Foundation</div>
+          <div class="phase-items">
+            Laravel setup · SQL Server<br>
+            Auth + RBAC · School setup<br>
+            Academic year &amp; terms<br>
+            Dashboard · Audit logs
+          </div>
+          <div class="phase-progress"><div class="phase-bar" style="width:100%"></div></div>
+          <div class="phase-pct"><span>Complete</span><span>100%</span></div>
+        </div>
+
+        <div class="phase-card active">
+          <div class="phase-num">PHASE 02</div>
+          <div class="phase-name">Student Core</div>
+          <div class="phase-items">
+            Student CRUD ✓<br>
+            Admissions pipeline<br>
+            Guardians · Enrolments<br>
+            Student profiles &amp; docs
+          </div>
+          <div class="phase-progress"><div class="phase-bar" style="width:25%"></div></div>
+          <div class="phase-pct"><span>In Progress</span><span>25%</span></div>
+        </div>
+
+        <div class="phase-card upcoming">
+          <div class="phase-num">PHASE 03</div>
+          <div class="phase-name">Academic Engine</div>
+          <div class="phase-items">
+            Subjects · Timetable<br>
+            Attendance engine<br>
+            Assessments · Marks<br>
+            Results &amp; report cards
+          </div>
+          <div class="phase-progress"><div class="phase-bar" style="width:0%"></div></div>
+          <div class="phase-pct"><span>Upcoming</span><span>0%</span></div>
+        </div>
+
+        <div class="phase-card upcoming">
+          <div class="phase-num">PHASE 04</div>
+          <div class="phase-name">Finance</div>
+          <div class="phase-items">
+            Fee structures<br>
+            Invoices &amp; payments<br>
+            Receipts · Scholarships<br>
+            Financial reports
+          </div>
+          <div class="phase-progress"><div class="phase-bar" style="width:0%"></div></div>
+          <div class="phase-pct"><span>Upcoming</span><span>0%</span></div>
+        </div>
+
+        <div class="phase-card upcoming">
+          <div class="phase-num">PHASE 05</div>
+          <div class="phase-name">Operations</div>
+          <div class="phase-items">
+            HR · Library · Inventory<br>
+            Transport · Discipline<br>
+            Communication engine<br>
+            Events calendar
+          </div>
+          <div class="phase-progress"><div class="phase-bar" style="width:0%"></div></div>
+          <div class="phase-pct"><span>Upcoming</span><span>0%</span></div>
+        </div>
+
+        <div class="phase-card upcoming">
+          <div class="phase-num">PHASE 06</div>
+          <div class="phase-name">Analytics</div>
+          <div class="phase-items">
+            Executive dashboards<br>
+            At-risk student alerts<br>
+            Financial analytics<br>
+            Institutional reports
+          </div>
+          <div class="phase-progress"><div class="phase-bar" style="width:0%"></div></div>
+          <div class="phase-pct"><span>Upcoming</span><span>0%</span></div>
+        </div>
+
+        <div class="phase-card upcoming">
+          <div class="phase-num">PHASE 07</div>
+          <div class="phase-name">SaaS Platform</div>
+          <div class="phase-items">
+            REST API · Mobile apps<br>
+            Multi-school / multi-campus<br>
+            Payment gateway integration<br>
+            Biometric &amp; SMS hooks
+          </div>
+          <div class="phase-progress"><div class="phase-bar" style="width:0%"></div></div>
+          <div class="phase-pct"><span>Upcoming</span><span>0%</span></div>
+        </div>
+
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- DATABASE -->
+    <section class="section" id="database">
+      <div class="section-eyebrow">Data Layer</div>
+      <div class="section-title">Database Schema — 77 Tables</div>
+      <p class="section-desc">All FK constraints use <span class="mono">NO ACTION</span> to satisfy SQL Server's multiple-cascade-path restriction. Referential integrity is enforced at the application layer.</p>
+
+      <div class="domain-section">
+        <div class="domain-label">🔐 Identity &amp; Access</div>
+        <div class="table-tags">
+          <span class="table-tag">users</span>
+          <span class="table-tag">roles</span>
+          <span class="table-tag">permissions</span>
+          <span class="table-tag">model_has_roles</span>
+          <span class="table-tag">model_has_permissions</span>
+          <span class="table-tag">role_has_permissions</span>
+          <span class="table-tag">personal_access_tokens</span>
+          <span class="table-tag">login_history</span>
+          <span class="table-tag">password_reset_tokens</span>
+        </div>
+      </div>
+
+      <div class="domain-section">
+        <div class="domain-label">🏫 Organisation</div>
+        <div class="table-tags">
+          <span class="table-tag">schools</span>
+          <span class="table-tag">campuses</span>
+          <span class="table-tag">departments</span>
+          <span class="table-tag">system_settings</span>
+          <span class="table-tag">audit_logs</span>
+          <span class="table-tag">documents</span>
+          <span class="table-tag">academic_years</span>
+          <span class="table-tag">terms</span>
+        </div>
+      </div>
+
+      <div class="domain-section">
+        <div class="domain-label">🎓 Students</div>
+        <div class="table-tags">
+          <span class="table-tag">students</span>
+          <span class="table-tag">guardians</span>
+          <span class="table-tag">student_guardians</span>
+          <span class="table-tag">admissions</span>
+          <span class="table-tag">enrolments</span>
+          <span class="table-tag">school_classes</span>
+          <span class="table-tag">disciplinary_records</span>
+        </div>
+      </div>
+
+      <div class="domain-section">
+        <div class="domain-label">📚 Academics</div>
+        <div class="table-tags">
+          <span class="table-tag">subjects</span>
+          <span class="table-tag">class_subjects</span>
+          <span class="table-tag">timetable_periods</span>
+          <span class="table-tag">timetables</span>
+          <span class="table-tag">student_attendance</span>
+          <span class="table-tag">staff_attendance</span>
+          <span class="table-tag">grading_scales</span>
+          <span class="table-tag">grade_bands</span>
+          <span class="table-tag">assessment_configurations</span>
+          <span class="table-tag">assessments</span>
+          <span class="table-tag">marks</span>
+          <span class="table-tag">results</span>
+          <span class="table-tag">result_subject_scores</span>
+        </div>
+      </div>
+
+      <div class="domain-section">
+        <div class="domain-label">💰 Finance</div>
+        <div class="table-tags">
+          <span class="table-tag">fee_categories</span>
+          <span class="table-tag">fee_structures</span>
+          <span class="table-tag">fee_structure_items</span>
+          <span class="table-tag">scholarships</span>
+          <span class="table-tag">invoices</span>
+          <span class="table-tag">invoice_items</span>
+          <span class="table-tag">payments</span>
+          <span class="table-tag">receipts</span>
+        </div>
+      </div>
+
+      <div class="domain-section">
+        <div class="domain-label">👥 Human Resources</div>
+        <div class="table-tags">
+          <span class="table-tag">positions</span>
+          <span class="table-tag">employees</span>
+          <span class="table-tag">leave_types</span>
+          <span class="table-tag">leave_requests</span>
+        </div>
+      </div>
+
+      <div class="domain-section">
+        <div class="domain-label">📖 Library</div>
+        <div class="table-tags">
+          <span class="table-tag">book_categories</span>
+          <span class="table-tag">authors</span>
+          <span class="table-tag">publishers</span>
+          <span class="table-tag">books</span>
+          <span class="table-tag">book_authors</span>
+          <span class="table-tag">book_copies</span>
+          <span class="table-tag">book_loans</span>
+        </div>
+      </div>
+
+      <div class="domain-section">
+        <div class="domain-label">🚌 Transport</div>
+        <div class="table-tags">
+          <span class="table-tag">vehicles</span>
+          <span class="table-tag">drivers</span>
+          <span class="table-tag">transport_routes</span>
+          <span class="table-tag">transport_stops</span>
+          <span class="table-tag">student_transport</span>
+        </div>
+      </div>
+
+      <div class="domain-section">
+        <div class="domain-label">📦 Inventory</div>
+        <div class="table-tags">
+          <span class="table-tag">suppliers</span>
+          <span class="table-tag">asset_categories</span>
+          <span class="table-tag">assets</span>
+          <span class="table-tag">inventory_items</span>
+          <span class="table-tag">stock_movements</span>
+        </div>
+      </div>
+
+      <div class="domain-section">
+        <div class="domain-label">📣 Communication</div>
+        <div class="table-tags">
+          <span class="table-tag">announcements</span>
+          <span class="table-tag">events</span>
+          <span class="table-tag">messages</span>
+          <span class="table-tag">message_recipients</span>
+        </div>
+      </div>
+
+      <div class="domain-section">
+        <div class="domain-label">⚙️ System</div>
+        <div class="table-tags">
+          <span class="table-tag">cache</span>
+          <span class="table-tag">cache_locks</span>
+          <span class="table-tag">jobs</span>
+          <span class="table-tag">job_batches</span>
+          <span class="table-tag">failed_jobs</span>
+          <span class="table-tag">sessions</span>
+          <span class="table-tag">migrations</span>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- MODULES -->
+    <section class="section" id="modules">
+      <div class="section-eyebrow">Application Modules</div>
+      <div class="section-title">Module Map</div>
+
+      <div class="box">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Module</th>
+              <th>Controller</th>
+              <th>Status</th>
+              <th>Phase</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Dashboard</strong></td>
+              <td class="mono">DashboardController</td>
+              <td><span class="pill pill-green">✓ Built</span></td>
+              <td class="pill pill-muted">1</td>
+            </tr>
+            <tr>
+              <td><strong>Authentication</strong></td>
+              <td class="mono">Auth\LoginController</td>
+              <td><span class="pill pill-green">✓ Built</span></td>
+              <td class="pill pill-muted">1</td>
+            </tr>
+            <tr>
+              <td><strong>Students</strong></td>
+              <td class="mono">StudentController</td>
+              <td><span class="pill pill-green">✓ Built</span></td>
+              <td class="pill pill-muted">2</td>
+            </tr>
+            <tr>
+              <td><strong>Users &amp; Access</strong></td>
+              <td class="mono">UserController</td>
+              <td><span class="pill pill-warn">⚡ Partial</span></td>
+              <td class="pill pill-muted">1</td>
+            </tr>
+            <tr>
+              <td><strong>Admissions</strong></td>
+              <td class="mono">AdmissionController</td>
+              <td><span class="pill pill-muted">To build</span></td>
+              <td class="pill pill-muted">2</td>
+            </tr>
+            <tr>
+              <td><strong>Guardians</strong></td>
+              <td class="mono">GuardianController</td>
+              <td><span class="pill pill-muted">To build</span></td>
+              <td class="pill pill-muted">2</td>
+            </tr>
+            <tr>
+              <td><strong>Classes</strong></td>
+              <td class="mono">SchoolClassController</td>
+              <td><span class="pill pill-muted">To build</span></td>
+              <td class="pill pill-muted">2</td>
+            </tr>
+            <tr>
+              <td><strong>Subjects</strong></td>
+              <td class="mono">SubjectController</td>
+              <td><span class="pill pill-muted">To build</span></td>
+              <td class="pill pill-muted">3</td>
+            </tr>
+            <tr>
+              <td><strong>Timetable</strong></td>
+              <td class="mono">TimetableController</td>
+              <td><span class="pill pill-muted">To build</span></td>
+              <td class="pill pill-muted">3</td>
+            </tr>
+            <tr>
+              <td><strong>Attendance</strong></td>
+              <td class="mono">AttendanceController</td>
+              <td><span class="pill pill-muted">To build</span></td>
+              <td class="pill pill-muted">3</td>
+            </tr>
+            <tr>
+              <td><strong>Assessments</strong></td>
+              <td class="mono">AssessmentController</td>
+              <td><span class="pill pill-muted">To build</span></td>
+              <td class="pill pill-muted">3</td>
+            </tr>
+            <tr>
+              <td><strong>Results</strong></td>
+              <td class="mono">ResultController</td>
+              <td><span class="pill pill-muted">To build</span></td>
+              <td class="pill pill-muted">3</td>
+            </tr>
+            <tr>
+              <td><strong>Finance</strong></td>
+              <td class="mono">InvoiceController</td>
+              <td><span class="pill pill-muted">To build</span></td>
+              <td class="pill pill-muted">4</td>
+            </tr>
+            <tr>
+              <td><strong>HR / Staff</strong></td>
+              <td class="mono">EmployeeController</td>
+              <td><span class="pill pill-muted">To build</span></td>
+              <td class="pill pill-muted">5</td>
+            </tr>
+            <tr>
+              <td><strong>Library</strong></td>
+              <td class="mono">LibraryController</td>
+              <td><span class="pill pill-muted">To build</span></td>
+              <td class="pill pill-muted">5</td>
+            </tr>
+            <tr>
+              <td><strong>Transport</strong></td>
+              <td class="mono">TransportController</td>
+              <td><span class="pill pill-muted">To build</span></td>
+              <td class="pill pill-muted">5</td>
+            </tr>
+            <tr>
+              <td><strong>Analytics</strong></td>
+              <td class="mono">AnalyticsController</td>
+              <td><span class="pill pill-muted">To build</span></td>
+              <td class="pill pill-muted">6</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ROUTES -->
+    <section class="section" id="routes">
+      <div class="section-eyebrow">Registered Routes</div>
+      <div class="section-title">Core Routes (Phase 1–2)</div>
+
+      <div class="box" style="padding:1rem 1.25rem;">
+        <div class="route-list">
+          <div class="route-item"><span class="method m-get">GET</span><span class="route-path">/login → Auth\LoginController</span></div>
+          <div class="route-item"><span class="method m-post">POST</span><span class="route-path">/login → Auth\LoginController</span></div>
+          <div class="route-item"><span class="method m-post">POST</span><span class="route-path">/logout → Auth\LogoutController</span></div>
+          <div class="route-item"><span class="method m-get">GET</span><span class="route-path">/ → DashboardController</span></div>
+          <div class="route-item"><span class="method m-get">GET</span><span class="route-path">/profile → ProfileController@show</span></div>
+          <div class="route-item"><span class="method m-put">PUT</span><span class="route-path">/profile → ProfileController@update</span></div>
+          <div class="route-item"><span class="method m-get">GET</span><span class="route-path">/students → StudentController@index</span></div>
+          <div class="route-item"><span class="method m-get">GET</span><span class="route-path">/students/create → StudentController@create</span></div>
+          <div class="route-item"><span class="method m-post">POST</span><span class="route-path">/students → StudentController@store</span></div>
+          <div class="route-item"><span class="method m-get">GET</span><span class="route-path">/students/{id} → StudentController@show</span></div>
+          <div class="route-item"><span class="method m-get">GET</span><span class="route-path">/students/{id}/edit → StudentController@edit</span></div>
+          <div class="route-item"><span class="method m-put">PUT</span><span class="route-path">/students/{id} → StudentController@update</span></div>
+          <div class="route-item"><span class="method m-del">DEL</span><span class="route-path">/students/{id} → StudentController@destroy</span></div>
+          <div class="route-item"><span class="method m-get">GET</span><span class="route-path">/admissions, /classes, /subjects, … → placeholder</span></div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- RBAC -->
+    <section class="section" id="rbac">
+      <div class="section-eyebrow">Access Control</div>
+      <div class="section-title">Roles &amp; Permissions</div>
+
+      <div class="box">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Role</th>
+              <th>Scope</th>
+              <th>Key Capabilities</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>super-admin</strong></td>
+              <td><span class="pill pill-blue">Platform</span></td>
+              <td>All permissions — manages schools and platform</td>
+            </tr>
+            <tr>
+              <td><strong>school-admin</strong></td>
+              <td><span class="pill pill-info">School</span></td>
+              <td>Full access within school — users, settings, all modules</td>
+            </tr>
+            <tr>
+              <td><strong>principal</strong></td>
+              <td><span class="pill pill-info">School</span></td>
+              <td>View all, approve results, publish results, reports</td>
+            </tr>
+            <tr>
+              <td><strong>vice-principal</strong></td>
+              <td><span class="pill pill-info">School</span></td>
+              <td>Students, attendance, results view, announcements</td>
+            </tr>
+            <tr>
+              <td><strong>teacher</strong></td>
+              <td><span class="pill pill-info">School</span></td>
+              <td>Own classes, take attendance, enter marks, view results</td>
+            </tr>
+            <tr>
+              <td><strong>accountant</strong></td>
+              <td><span class="pill pill-info">School</span></td>
+              <td>Full finance — fee structures, invoices, payments, reports</td>
+            </tr>
+            <tr>
+              <td><strong>hr-officer</strong></td>
+              <td><span class="pill pill-info">School</span></td>
+              <td>Staff management, positions, leave approval</td>
+            </tr>
+            <tr>
+              <td><strong>librarian</strong></td>
+              <td><span class="pill pill-info">School</span></td>
+              <td>Library catalogue, issue, return, reports</td>
+            </tr>
+            <tr>
+              <td><strong>receptionist</strong></td>
+              <td><span class="pill pill-info">School</span></td>
+              <td>Admissions, student view, guardians, announcements</td>
+            </tr>
+            <tr>
+              <td><strong>parent</strong></td>
+              <td><span class="pill pill-muted">Portal</span></td>
+              <td>Own children: attendance, results, fees, messages</td>
+            </tr>
+            <tr>
+              <td><strong>student</strong></td>
+              <td><span class="pill pill-muted">Portal</span></td>
+              <td>Own data: attendance, results, timetable, announcements</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- CREDENTIALS -->
+    <section class="section" id="credentials">
+      <div class="section-eyebrow">Development Access</div>
+      <div class="section-title">Default Credentials</div>
+      <p class="section-desc" style="color:var(--warn); font-weight:600;">⚠ Change all passwords before any production deployment.</p>
+
+      <div class="cred-block">
+        <div class="cred-row">
+          <div class="cred-role">Super Admin</div>
+          <div class="cred-email">superadmin@schoolos.com</div>
+          <div class="cred-pass">SchoolOS@2024!</div>
+        </div>
+        <div class="cred-row">
+          <div class="cred-role">School Admin</div>
+          <div class="cred-email">admin@greenfieldacademy.edu.ng</div>
+          <div class="cred-pass">Admin@2024!</div>
+        </div>
+        <div class="cred-row">
+          <div class="cred-role">Principal</div>
+          <div class="cred-email">principal@greenfieldacademy.edu.ng</div>
+          <div class="cred-pass">Principal@2024!</div>
+        </div>
+        <div class="cred-row">
+          <div class="cred-role">Teacher</div>
+          <div class="cred-email">teacher@greenfieldacademy.edu.ng</div>
+          <div class="cred-pass">Teacher@2024!</div>
+        </div>
+        <div class="cred-row">
+          <div class="cred-role">Accountant</div>
+          <div class="cred-email">accountant@greenfieldacademy.edu.ng</div>
+          <div class="cred-pass">Accountant@2024!</div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- CONFIG -->
+    <section class="section" id="config">
+      <div class="section-eyebrow">Environment</div>
+      <div class="section-title">Configuration Notes</div>
+
+      <div class="box" style="padding:1.25rem;">
+        <div style="display:grid;gap:1rem;">
+          <div>
+            <div class="domain-label" style="margin-bottom:6px;">SQL Server Connection</div>
+            <p style="font-size:13px;color:var(--txt2);">TCP is disabled on the <span class="mono">SQLDEV</span> instance. Connection uses a named pipe configured directly in <span class="mono">config/database.php</span> (the <span class="mono">DB_HOST</span> .env value is unused for the host path — the PHP string literal is the source of truth to avoid backslash escaping issues in dotenv).</p>
+          </div>
+          <div>
+            <div class="domain-label" style="margin-bottom:6px;">PHP Installation</div>
+            <p style="font-size:13px;color:var(--txt2);">XAMPP at <span class="mono">C:\xampp\php\php.exe</span>. SQL Server PHP driver v5.12.0 (TS x64) manually installed. Run artisan commands with the full path.</p>
+          </div>
+          <div>
+            <div class="domain-label" style="margin-bottom:6px;">FK Cascade Policy</div>
+            <p style="font-size:13px;color:var(--txt2);">All foreign keys use <span class="mono">NO ACTION</span> (no cascade delete or set null). SQL Server's multiple-cascade-path restriction prevents cascades across the school → campus → child chain. Data cleanup is handled at the application layer via model observers and service classes.</p>
+          </div>
+          <div>
+            <div class="domain-label" style="margin-bottom:6px;">Dev Server</div>
+            <p style="font-size:13px;color:var(--txt2);"><span class="mono">C:\xampp\php\php.exe artisan serve --host=0.0.0.0 --port=8000</span></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- NEXT STEPS -->
+    <section class="section" id="next">
+      <div class="section-eyebrow">What's Next</div>
+      <div class="section-title">Phase 2 Build Queue</div>
+
+      <div class="box">
+        <table class="data-table">
+          <thead>
+            <tr><th>#</th><th>Task</th><th>Effort</th><th>Priority</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">01</td>
+              <td>Admissions controller + views (application form, pipeline, decisions)</td>
+              <td><span class="pill pill-warn">Medium</span></td>
+              <td><span class="pill pill-blue">High</span></td>
+            </tr>
+            <tr>
+              <td class="mono">02</td>
+              <td>Guardian management (CRUD, link to students, portal access toggle)</td>
+              <td><span class="pill pill-green">Low</span></td>
+              <td><span class="pill pill-blue">High</span></td>
+            </tr>
+            <tr>
+              <td class="mono">03</td>
+              <td>School Classes management (create, assign teachers, stream config)</td>
+              <td><span class="pill pill-green">Low</span></td>
+              <td><span class="pill pill-blue">High</span></td>
+            </tr>
+            <tr>
+              <td class="mono">04</td>
+              <td>User management CRUD (invite users, assign roles, deactivate)</td>
+              <td><span class="pill pill-warn">Medium</span></td>
+              <td><span class="pill pill-blue">High</span></td>
+            </tr>
+            <tr>
+              <td class="mono">05</td>
+              <td>Enrolment engine (bulk enrol by class, carry forward, promotions)</td>
+              <td><span class="pill pill-warn">Medium</span></td>
+              <td><span class="pill pill-warn">Medium</span></td>
+            </tr>
+            <tr>
+              <td class="mono">06</td>
+              <td>Photo upload to storage with automatic thumbnail generation</td>
+              <td><span class="pill pill-green">Low</span></td>
+              <td><span class="pill pill-warn">Medium</span></td>
+            </tr>
+            <tr>
+              <td class="mono">07</td>
+              <td>Student ID card PDF generation via DomPDF</td>
+              <td><span class="pill pill-green">Low</span></td>
+              <td><span class="pill pill-warn">Medium</span></td>
+            </tr>
+            <tr>
+              <td class="mono">08</td>
+              <td>Settings page (school profile, academic config, branding)</td>
+              <td><span class="pill pill-warn">Medium</span></td>
+              <td><span class="pill pill-warn">Medium</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <p style="font-size:11px;color:var(--muted);font-family:var(--mono);border-top:1px solid var(--border);padding-top:1.5rem;margin-top:1rem;">
+      School OS · Foundation Build · Generated 2026-08-26 · Laravel 12 + SQL Server 2022 · D:\School_OS
+    </p>
+
+  </main>
+</div>
+
+<script>
+  document.getElementById('buildDate').textContent = new Date().toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'});
+</script>
