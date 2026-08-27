@@ -11,6 +11,7 @@ use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\EnrolmentController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\StaffAttendanceController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\FeeController;
@@ -183,6 +184,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('attendance', [AttendanceController::class, 'index'])->name('attendance.index');
     Route::post('attendance', [AttendanceController::class, 'store'])->name('attendance.store');
     Route::get('attendance/report', [AttendanceController::class, 'report'])->name('attendance.report');
+
+    Route::get('staff-attendance', [StaffAttendanceController::class, 'index'])->name('staff-attendance.index');
+    Route::post('staff-attendance', [StaffAttendanceController::class, 'store'])->name('staff-attendance.store');
+    Route::get('staff-attendance/report', [StaffAttendanceController::class, 'report'])->name('staff-attendance.report');
 
     // ============================================================
     // ASSESSMENTS

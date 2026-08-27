@@ -62,6 +62,7 @@ class RolesPermissionsSeeder extends Seeder
             'view staff', 'create staff', 'edit staff', 'delete staff',
             'view positions', 'manage positions',
             'view leave', 'manage leave', 'approve leave',
+            'view staff attendance', 'manage staff attendance',
 
             // Library
             'view library', 'manage books', 'issue books', 'return books',
@@ -100,6 +101,7 @@ class RolesPermissionsSeeder extends Seeder
             'principal' => [
                 'view dashboard', 'view analytics', 'view students', 'view student profiles',
                 'view staff', 'view classes', 'view subjects', 'view attendance', 'view attendance reports',
+                'view staff attendance',
                 'view assessments', 'view marks', 'view results', 'approve results', 'publish results',
                 'view result reports', 'generate report cards', 'view fees', 'view payments',
                 'view financial reports', 'view library', 'view transport', 'view inventory',
@@ -132,7 +134,8 @@ class RolesPermissionsSeeder extends Seeder
             'hr-officer' => [
                 'view dashboard', 'view staff', 'create staff', 'edit staff',
                 'view positions', 'manage positions', 'view leave', 'manage leave',
-                'approve leave', 'generate reports',
+                'approve leave', 'view staff attendance', 'manage staff attendance',
+                'generate reports',
             ],
             'librarian' => [
                 'view dashboard', 'view students', 'view library', 'manage books',
