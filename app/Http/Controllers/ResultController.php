@@ -220,6 +220,21 @@ class ResultController extends Controller
         return back()->with('success', 'Result published.');
     }
 
+    public function reportCard(Result $result): View
+    {
+        abort_unless(auth()->user()->can('view results'), 403);
+        abort_unless($result->school_id == auth()->user()->school_id, 403);
+
+        $result->load([
+            'student', 'schoolClass', 'academicYear', 'term',
+            'subjectScores.subject', 'approvedBy',
+        ]);
+
+        $school = auth()->user()->school;
+
+        return view('results.report-card', compact('result', 'school'));
+    }
+
     public function bulkApprove(Request $request): RedirectResponse
     {
         abort_unless(auth()->user()->can('approve results'), 403);

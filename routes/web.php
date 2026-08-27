@@ -199,6 +199,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('results/bulk-approve', [ResultController::class, 'bulkApprove'])->name('results.bulk-approve');
     Route::post('results/bulk-publish', [ResultController::class, 'bulkPublish'])->name('results.bulk-publish');
     Route::get('results/{result}', [ResultController::class, 'show'])->name('results.show');
+    Route::get('results/{result}/report-card', [ResultController::class, 'reportCard'])->name('results.report-card');
     Route::put('results/{result}/comment', [ResultController::class, 'updateComment'])->name('results.comment');
     Route::patch('results/{result}/approve', [ResultController::class, 'approve'])->name('results.approve');
     Route::patch('results/{result}/publish', [ResultController::class, 'publish'])->name('results.publish');

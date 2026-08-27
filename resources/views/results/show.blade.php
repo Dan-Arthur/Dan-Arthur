@@ -19,6 +19,10 @@
         </div>
     </div>
     <div class="flex items-center gap-2">
+        <a href="{{ route('results.report-card', $result) }}" target="_blank" class="btn-ghost">
+            Print Report Card
+        </a>
+
         @if($result->status === 'draft' || $result->status === 'pending_approval')
         @can('approve results')
         <form method="POST" action="{{ route('results.approve', $result) }}">
