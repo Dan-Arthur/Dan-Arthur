@@ -24,14 +24,17 @@
             <p class="page-subtitle">{{ $student->student_number }} · {{ $student->currentClass?->name ?? 'Unassigned' }}</p>
         </div>
     </div>
-    @can('edit students')
-    <div class="flex gap-2">
+    <div class="flex gap-2 flex-wrap">
+        @can('view disciplinary records')
+        <a href="{{ route('disciplinary.student-history', $student) }}" class="btn-secondary btn-sm">Disciplinary</a>
+        @endcan
+        @can('edit students')
         <a href="{{ route('students.edit', $student) }}" class="btn-primary btn-sm">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
             Edit Profile
         </a>
+        @endcan
     </div>
-    @endcan
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-4 gap-5">

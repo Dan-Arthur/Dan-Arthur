@@ -7,7 +7,7 @@
 </a>
 
 {{-- ADMISSIONS --}}
-@canany(['view admissions', 'view students'])
+@canany(['view admissions', 'view students', 'view disciplinary records'])
 <p class="sidebar-section" x-show="sidebarOpen">Admissions</p>
 <div class="my-3 border-t border-slate-800" x-show="!sidebarOpen"></div>
 
@@ -44,6 +44,15 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
     </svg>
     <span x-show="sidebarOpen" class="truncate">Enrolments</span>
+</a>
+@endcan
+
+@can('view disciplinary records')
+<a href="{{ route('disciplinary.index') }}" class="sidebar-link {{ request()->routeIs('disciplinary.*') ? 'active' : '' }}">
+    <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+    </svg>
+    <span x-show="sidebarOpen" class="truncate">Disciplinary</span>
 </a>
 @endcan
 @endcanany

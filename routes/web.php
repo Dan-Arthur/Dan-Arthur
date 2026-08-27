@@ -12,6 +12,7 @@ use App\Http\Controllers\EnrolmentController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\DisciplinaryRecordController;
 use App\Http\Controllers\GradingScaleController;
 use App\Http\Controllers\ScholarshipController;
 use App\Http\Controllers\StaffAttendanceController;
@@ -211,6 +212,20 @@ Route::middleware(['auth'])->group(function () {
     Route::put('results/{result}/comment', [ResultController::class, 'updateComment'])->name('results.comment');
     Route::patch('results/{result}/approve', [ResultController::class, 'approve'])->name('results.approve');
     Route::patch('results/{result}/publish', [ResultController::class, 'publish'])->name('results.publish');
+
+    // ============================================================
+    // DISCIPLINARY RECORDS
+    // ============================================================
+    Route::get('disciplinary/search-students', [DisciplinaryRecordController::class, 'searchStudents'])->name('disciplinary.search-students');
+    Route::get('disciplinary/terms', [DisciplinaryRecordController::class, 'termsByYear'])->name('disciplinary.terms');
+    Route::get('disciplinary', [DisciplinaryRecordController::class, 'index'])->name('disciplinary.index');
+    Route::get('disciplinary/create', [DisciplinaryRecordController::class, 'create'])->name('disciplinary.create');
+    Route::post('disciplinary', [DisciplinaryRecordController::class, 'store'])->name('disciplinary.store');
+    Route::get('disciplinary/{disciplinary}', [DisciplinaryRecordController::class, 'show'])->name('disciplinary.show');
+    Route::get('disciplinary/{disciplinary}/edit', [DisciplinaryRecordController::class, 'edit'])->name('disciplinary.edit');
+    Route::put('disciplinary/{disciplinary}', [DisciplinaryRecordController::class, 'update'])->name('disciplinary.update');
+    Route::delete('disciplinary/{disciplinary}', [DisciplinaryRecordController::class, 'destroy'])->name('disciplinary.destroy');
+    Route::get('students/{student}/disciplinary', [DisciplinaryRecordController::class, 'studentHistory'])->name('disciplinary.student-history');
 
     // ============================================================
     // GRADING SCALES
