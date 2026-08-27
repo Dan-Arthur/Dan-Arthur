@@ -46,6 +46,11 @@ class LoginController extends Controller
 
             AuditLog::record('login', null, [], [], 'auth');
 
+            // Guardians with portal access go to the parent portal
+            if ($user->guardian && $user->guardian->portal_access) {
+                return redirect()->route('portal.dashboard');
+            }
+
             return redirect()->intended(route('dashboard'));
         }
 

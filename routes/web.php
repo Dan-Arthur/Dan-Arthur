@@ -13,6 +13,7 @@ use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\DisciplinaryRecordController;
+use App\Http\Controllers\PortalController;
 use App\Http\Controllers\GradingScaleController;
 use App\Http\Controllers\ScholarshipController;
 use App\Http\Controllers\StaffAttendanceController;
@@ -37,6 +38,16 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+
+// ============================================================
+// PARENT / GUARDIAN PORTAL
+// ============================================================
+Route::middleware(['auth', 'guardian.portal'])->prefix('portal')->name('portal.')->group(function () {
+    Route::get('/', [PortalController::class, 'dashboard'])->name('dashboard');
+    Route::get('/children/{studentId}', [PortalController::class, 'child'])->name('child');
+    Route::get('/invoices/{invoiceId}', [PortalController::class, 'invoice'])->name('invoice');
+    Route::get('/results/{resultId}', [PortalController::class, 'result'])->name('result');
+});
 
 // ============================================================
 // GUEST ROUTES
