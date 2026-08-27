@@ -85,6 +85,9 @@ class RolesPermissionsSeeder extends Seeder
             // Exams
             'view exams', 'manage exams',
 
+            // Feeding
+            'view feeding', 'manage feeding', 'record feeding',
+
             // Discipline
             'view disciplinary records', 'create disciplinary records',
             'edit disciplinary records', 'delete disciplinary records',
@@ -115,6 +118,7 @@ class RolesPermissionsSeeder extends Seeder
                 'send messages', 'view messages', 'manage events', 'view disciplinary records',
                 'create disciplinary records', 'edit disciplinary records', 'generate reports',
                 'export reports', 'view audit logs', 'view exams', 'manage exams',
+                'view feeding', 'manage feeding', 'record feeding',
             ],
             'vice-principal' => [
                 'view dashboard', 'view students', 'view student profiles', 'view staff',
@@ -124,6 +128,7 @@ class RolesPermissionsSeeder extends Seeder
                 'create announcements', 'send messages', 'view messages', 'manage events',
                 'view disciplinary records', 'create disciplinary records',
                 'view exams', 'manage exams',
+                'view feeding', 'manage feeding', 'record feeding',
             ],
             'teacher' => [
                 'view dashboard', 'view students', 'view student profiles', 'view classes',
@@ -131,13 +136,14 @@ class RolesPermissionsSeeder extends Seeder
                 'view assessments', 'create assessments', 'edit assessments', 'enter marks',
                 'view marks', 'view results', 'view result reports', 'view announcements',
                 'send messages', 'view messages', 'view timetables', 'view exams',
+                'view feeding', 'record feeding',
             ],
             'accountant' => [
                 'view dashboard', 'view students', 'view fees', 'manage fee structures',
                 'create invoices', 'edit invoices', 'record payments', 'view payments',
                 'generate receipts', 'view financial reports', 'manage scholarships',
                 'manage discounts', 'view expenses', 'create expenses', 'manage expenses',
-                'generate reports', 'export reports',
+                'generate reports', 'export reports', 'view feeding',
             ],
             'hr-officer' => [
                 'view dashboard', 'view staff', 'create staff', 'edit staff',

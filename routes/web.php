@@ -31,6 +31,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ResultController;
 use App\Http\Controllers\TimetableController;
 use App\Http\Controllers\ExamController;
+use App\Http\Controllers\FeedingController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TransportController;
 use App\Http\Controllers\GuardianController;
@@ -384,6 +385,17 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('transport/stops/{stop}', [TransportController::class, 'destroyStop'])->name('transport.stops.destroy');
     Route::post('transport/{route}/assign', [TransportController::class, 'assignStudent'])->name('transport.assign');
     Route::delete('transport/assignments/{assignment}', [TransportController::class, 'removeStudent'])->name('transport.assign.remove');
+
+    // ============================================================
+    // FEEDING
+    // ============================================================
+    Route::get('feeding', [FeedingController::class, 'index'])->name('feeding.index');
+    Route::get('feeding/enrollment', [FeedingController::class, 'enrollment'])->name('feeding.enrollment');
+    Route::post('feeding/enrollment', [FeedingController::class, 'enroll'])->name('feeding.enroll');
+    Route::put('feeding/enrollment/{enrollment}', [FeedingController::class, 'updateEnrollment'])->name('feeding.enrollment.update');
+    Route::delete('feeding/enrollment/{enrollment}', [FeedingController::class, 'unenroll'])->name('feeding.unenroll');
+    Route::get('feeding/records', [FeedingController::class, 'records'])->name('feeding.records');
+    Route::post('feeding/records', [FeedingController::class, 'saveRecords'])->name('feeding.records.save');
 
     // ============================================================
     // INVENTORY
