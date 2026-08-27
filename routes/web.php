@@ -19,6 +19,7 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\LibraryController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\SmsAlertController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ResultController;
@@ -344,6 +345,18 @@ Route::middleware(['auth'])->group(function () {
     Route::post('messages/{message}/reply', [MessageController::class, 'reply'])->name('messages.reply');
     Route::patch('messages/{message}/star', [MessageController::class, 'star'])->name('messages.star');
     Route::patch('messages/{message}/trash', [MessageController::class, 'trash'])->name('messages.trash');
+
+    // ============================================================
+    // PAYROLL
+    // ============================================================
+    Route::get('payroll', [PayrollController::class, 'index'])->name('payroll.index');
+    Route::get('payroll/create', [PayrollController::class, 'create'])->name('payroll.create');
+    Route::post('payroll', [PayrollController::class, 'store'])->name('payroll.store');
+    Route::get('payroll/{payrollRun}', [PayrollController::class, 'show'])->name('payroll.show');
+    Route::patch('payroll/{payrollRun}/approve', [PayrollController::class, 'approve'])->name('payroll.approve');
+    Route::patch('payroll/{payrollRun}/mark-paid', [PayrollController::class, 'markPaid'])->name('payroll.mark-paid');
+    Route::get('payslips/{payslip}', [PayrollController::class, 'payslip'])->name('payroll.payslip');
+    Route::put('payslips/{payslip}', [PayrollController::class, 'updatePayslip'])->name('payroll.payslip.update');
 
     // ============================================================
     // BULK SMS ALERTS
