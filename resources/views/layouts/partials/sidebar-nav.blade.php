@@ -126,7 +126,7 @@
 @endcanany
 
 {{-- FINANCE --}}
-@canany(['view fees', 'record payments', 'view payments', 'view financial reports', 'view expenses'])
+@canany(['view fees', 'record payments', 'view payments', 'view financial reports', 'view expenses', 'manage scholarships'])
 <p class="sidebar-section" x-show="sidebarOpen">Finance</p>
 
 @can('view fees')
@@ -160,6 +160,15 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
     </svg>
     <span x-show="sidebarOpen" class="truncate">Expenses</span>
+</a>
+@endcan
+
+@can('manage scholarships')
+<a href="{{ route('scholarships.index') }}" class="sidebar-link {{ request()->routeIs('scholarships.*') ? 'active' : '' }}">
+    <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+    </svg>
+    <span x-show="sidebarOpen" class="truncate">Scholarships</span>
 </a>
 @endcan
 @endcanany

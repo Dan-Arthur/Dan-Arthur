@@ -8,6 +8,7 @@ use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Scholarship;
 use App\Models\Student;
+use App\Models\StudentScholarship;
 use App\Models\Term;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -77,11 +78,21 @@ class InvoiceController extends Controller
             ->orderBy('name')->get();
 
         $student = null;
+        $preselectedScholarshipId = null;
         if ($request->filled('student_id')) {
             $student = Student::where('school_id', $schoolId)->find($request->integer('student_id'));
+            if ($student && $currentYear) {
+                $preselectedScholarshipId = StudentScholarship::where('student_id', $student->id)
+                    ->where('academic_year_id', $currentYear->id)
+                    ->where('school_id', $schoolId)
+                    ->value('scholarship_id');
+            }
         }
 
-        return view('invoices.create', compact('years', 'terms', 'scholarships', 'structures', 'student', 'currentYear'));
+        return view('invoices.create', compact(
+            'years', 'terms', 'scholarships', 'structures',
+            'student', 'currentYear', 'preselectedScholarshipId',
+        ));
     }
 
     public function store(Request $request): RedirectResponse

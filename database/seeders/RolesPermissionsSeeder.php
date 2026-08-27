@@ -103,7 +103,7 @@ class RolesPermissionsSeeder extends Seeder
             'principal' => [
                 'view dashboard', 'view analytics', 'view students', 'view student profiles',
                 'view staff', 'view classes', 'view subjects', 'view attendance', 'view attendance reports',
-                'view staff attendance', 'manage grading scales',
+                'view staff attendance', 'manage grading scales', 'manage scholarships',
                 'view assessments', 'view marks', 'view results', 'approve results', 'publish results',
                 'view result reports', 'generate report cards', 'view fees', 'view payments',
                 'view financial reports', 'view expenses', 'approve expenses',

@@ -169,7 +169,7 @@
                     @foreach ($scholarships as $scholarship)
                         <option value="{{ $scholarship->id }}"
                                 data-type="{{ $scholarship->type }}" data-value="{{ $scholarship->value }}"
-                                {{ old('scholarship_id') == $scholarship->id ? 'selected' : '' }}>
+                                {{ (old('scholarship_id') ?? $preselectedScholarshipId) == $scholarship->id ? 'selected' : '' }}>
                             {{ $scholarship->name }}
                             ({{ $scholarship->type === 'percentage' ? $scholarship->value . '%' : 'Fixed ' . number_format($scholarship->value, 2) }})
                         </option>

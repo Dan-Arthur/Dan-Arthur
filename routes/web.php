@@ -13,6 +13,7 @@ use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\GradingScaleController;
+use App\Http\Controllers\ScholarshipController;
 use App\Http\Controllers\StaffAttendanceController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EventController;
@@ -221,6 +222,20 @@ Route::middleware(['auth'])->group(function () {
     Route::put('grading-scales/{gradingScale}', [GradingScaleController::class, 'update'])->name('grading-scales.update');
     Route::patch('grading-scales/{gradingScale}/set-default', [GradingScaleController::class, 'setDefault'])->name('grading-scales.set-default');
     Route::delete('grading-scales/{gradingScale}', [GradingScaleController::class, 'destroy'])->name('grading-scales.destroy');
+
+    // ============================================================
+    // SCHOLARSHIPS
+    // ============================================================
+    Route::get('scholarships/search-students', [ScholarshipController::class, 'searchStudents'])->name('scholarships.search-students');
+    Route::get('scholarships', [ScholarshipController::class, 'index'])->name('scholarships.index');
+    Route::get('scholarships/create', [ScholarshipController::class, 'create'])->name('scholarships.create');
+    Route::post('scholarships', [ScholarshipController::class, 'store'])->name('scholarships.store');
+    Route::get('scholarships/{scholarship}/edit', [ScholarshipController::class, 'edit'])->name('scholarships.edit');
+    Route::put('scholarships/{scholarship}', [ScholarshipController::class, 'update'])->name('scholarships.update');
+    Route::delete('scholarships/{scholarship}', [ScholarshipController::class, 'destroy'])->name('scholarships.destroy');
+    Route::get('scholarships/{scholarship}/students', [ScholarshipController::class, 'students'])->name('scholarships.students');
+    Route::post('scholarships/{scholarship}/assign', [ScholarshipController::class, 'assign'])->name('scholarships.assign');
+    Route::delete('scholarships/{scholarship}/revoke/{studentScholarship}', [ScholarshipController::class, 'revoke'])->name('scholarships.revoke');
 
     // ============================================================
     // FINANCE: FEES
