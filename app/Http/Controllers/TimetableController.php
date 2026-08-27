@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AcademicYear;
+use App\Models\ClassSubject;
 use App\Models\SchoolClass;
 use App\Models\Subject;
 use App\Models\Timetable;
@@ -10,28 +11,44 @@ use App\Models\TimetablePeriod;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class TimetableController extends Controller
 {
+    private function schoolId(): int
+    {
+        return auth()->user()->school_id;
+    }
+
+    // ============================================================
+    // CLASS VIEW
+    // ============================================================
+
     public function index(Request $request): View
     {
         abort_unless(auth()->user()->can('view timetables'), 403);
 
-        $schoolId = auth()->user()->school_id;
+        $schoolId = $this->schoolId();
 
         $years   = AcademicYear::where('school_id', $schoolId)->orderByDesc('start_date')->get();
         $classes = SchoolClass::where('school_id', $schoolId)->where('is_active', true)->orderBy('name')->get();
         $periods = TimetablePeriod::where('school_id', $schoolId)->orderBy('sort_order')->get();
 
-        $currentYear = $years->firstWhere('is_current', true) ?? $years->first();
-        $selectedYearId = $request->integer('year_id', $currentYear?->id ?? 0);
+        $currentYear     = $years->firstWhere('is_current', true) ?? $years->first();
+        $selectedYearId  = $request->integer('year_id', $currentYear?->id ?? 0);
         $selectedClassId = $request->integer('class_id', $classes->first()?->id ?? 0);
 
         $grid    = [];
         $entries = collect();
 
         if ($selectedClassId && $selectedYearId) {
+            // Verify class belongs to this school
+            abort_unless(
+                $classes->contains('id', $selectedClassId),
+                403
+            );
+
             $entries = Timetable::where('class_id', $selectedClassId)
                 ->where('academic_year_id', $selectedYearId)
                 ->where('is_active', true)
@@ -47,26 +64,39 @@ class TimetableController extends Controller
         $teachers   = $this->teacherList($schoolId);
         $subjects   = Subject::where('school_id', $schoolId)->where('is_active', true)->orderBy('name')->get();
 
+        // Subject → teacher suggestions from ClassSubject
+        $subjectTeacherMap = [];
+        if ($selectedClassId && $selectedYearId) {
+            $subjectTeacherMap = ClassSubject::where('class_id', $selectedClassId)
+                ->where('academic_year_id', $selectedYearId)
+                ->whereNotNull('teacher_id')
+                ->pluck('teacher_id', 'subject_id')
+                ->toArray();
+        }
+
         return view('timetables.index', compact(
             'years', 'classes', 'periods', 'grid', 'activeDays',
             'selectedYearId', 'selectedClassId', 'teachers', 'subjects',
+            'subjectTeacherMap',
         ));
     }
+
+    // ============================================================
+    // TEACHER VIEW
+    // ============================================================
 
     public function teacher(Request $request): View
     {
         abort_unless(auth()->user()->can('view timetables'), 403);
 
-        $schoolId = auth()->user()->school_id;
-        $years   = AcademicYear::where('school_id', $schoolId)->orderByDesc('start_date')->get();
-        $classes = SchoolClass::where('school_id', $schoolId)->where('is_active', true)->orderBy('name')->get();
-        $periods = TimetablePeriod::where('school_id', $schoolId)->orderBy('sort_order')->get();
+        $schoolId = $this->schoolId();
+        $years    = AcademicYear::where('school_id', $schoolId)->orderByDesc('start_date')->get();
+        $periods  = TimetablePeriod::where('school_id', $schoolId)->orderBy('sort_order')->get();
         $teachers = $this->teacherList($schoolId);
-        $subjects = Subject::where('school_id', $schoolId)->where('is_active', true)->orderBy('name')->get();
 
-        $currentYear = $years->firstWhere('is_current', true) ?? $years->first();
+        $currentYear       = $years->firstWhere('is_current', true) ?? $years->first();
         $selectedYearId    = $request->integer('year_id', $currentYear?->id ?? 0);
-        $selectedTeacherId = $request->integer('teacher_id', $teachers->first()?->id ?? 0);
+        $selectedTeacherId = $request->integer('teacher_id', auth()->id());
 
         $grid    = [];
         $entries = collect();
@@ -86,48 +116,54 @@ class TimetableController extends Controller
         $activeDays = $this->activeDays($entries);
 
         return view('timetables.teacher', compact(
-            'years', 'classes', 'periods', 'grid', 'activeDays',
-            'selectedYearId', 'selectedTeacherId', 'teachers', 'subjects',
+            'years', 'periods', 'grid', 'activeDays',
+            'selectedYearId', 'selectedTeacherId', 'teachers',
         ));
     }
+
+    // ============================================================
+    // STORE / UPDATE / DESTROY
+    // ============================================================
 
     public function store(Request $request): RedirectResponse
     {
         abort_unless(auth()->user()->can('manage timetables'), 403);
 
+        $schoolId = $this->schoolId();
+
         $validated = $request->validate([
-            'class_id'        => 'required|exists:school_classes,id',
-            'subject_id'      => 'required|exists:subjects,id',
-            'teacher_id'      => 'nullable|exists:users,id',
-            'period_id'       => 'required|exists:timetable_periods,id',
-            'academic_year_id'=> 'required|exists:academic_years,id',
-            'term_id'         => 'nullable|exists:terms,id',
-            'day_of_week'     => 'required|integer|between:1,7',
-            'room'            => 'nullable|string|max:100',
+            'class_id'         => ['required', Rule::exists('school_classes', 'id')->where('school_id', $schoolId)],
+            'subject_id'       => ['required', Rule::exists('subjects', 'id')->where('school_id', $schoolId)],
+            'teacher_id'       => ['nullable', Rule::exists('users', 'id')->where('school_id', $schoolId)],
+            'period_id'        => ['required', Rule::exists('timetable_periods', 'id')->where('school_id', $schoolId)],
+            'academic_year_id' => ['required', Rule::exists('academic_years', 'id')->where('school_id', $schoolId)],
+            'term_id'          => ['nullable', 'exists:terms,id'],
+            'day_of_week'      => ['required', 'integer', 'between:1,7'],
+            'room'             => ['nullable', 'string', 'max:100'],
         ]);
 
-        // Check for conflicts: same class + same period + same day
-        $conflict = Timetable::where('class_id', $validated['class_id'])
+        // Slot conflict: same class + same period + same day + same year
+        $slotTaken = Timetable::where('class_id', $validated['class_id'])
             ->where('period_id', $validated['period_id'])
             ->where('day_of_week', $validated['day_of_week'])
             ->where('academic_year_id', $validated['academic_year_id'])
             ->where('is_active', true)
             ->exists();
 
-        if ($conflict) {
+        if ($slotTaken) {
             return back()->with('error', 'This class already has a subject in that period/day slot.')->withInput();
         }
 
-        // Teacher conflict check
+        // Teacher conflict: same teacher + same period + same day + same year
         if (!empty($validated['teacher_id'])) {
-            $teacherConflict = Timetable::where('teacher_id', $validated['teacher_id'])
+            $teacherTaken = Timetable::where('teacher_id', $validated['teacher_id'])
                 ->where('period_id', $validated['period_id'])
                 ->where('day_of_week', $validated['day_of_week'])
                 ->where('academic_year_id', $validated['academic_year_id'])
                 ->where('is_active', true)
                 ->exists();
 
-            if ($teacherConflict) {
+            if ($teacherTaken) {
                 return back()->with('error', 'This teacher is already assigned in that period/day slot.')->withInput();
             }
         }
@@ -142,11 +178,34 @@ class TimetableController extends Controller
     {
         abort_unless(auth()->user()->can('manage timetables'), 403);
 
+        $schoolId = $this->schoolId();
+
+        // Confirm timetable belongs to this school via its class
+        abort_unless(
+            SchoolClass::where('id', $timetable->class_id)->where('school_id', $schoolId)->exists(),
+            403
+        );
+
         $validated = $request->validate([
-            'subject_id'  => 'required|exists:subjects,id',
-            'teacher_id'  => 'nullable|exists:users,id',
-            'room'        => 'nullable|string|max:100',
+            'subject_id' => ['required', Rule::exists('subjects', 'id')->where('school_id', $schoolId)],
+            'teacher_id' => ['nullable', Rule::exists('users', 'id')->where('school_id', $schoolId)],
+            'room'       => ['nullable', 'string', 'max:100'],
         ]);
+
+        // Teacher conflict (excluding this slot)
+        if (!empty($validated['teacher_id'])) {
+            $teacherTaken = Timetable::where('teacher_id', $validated['teacher_id'])
+                ->where('period_id', $timetable->period_id)
+                ->where('day_of_week', $timetable->day_of_week)
+                ->where('academic_year_id', $timetable->academic_year_id)
+                ->where('is_active', true)
+                ->where('id', '!=', $timetable->id)
+                ->exists();
+
+            if ($teacherTaken) {
+                return back()->with('error', 'This teacher is already assigned in that period/day slot.')->withInput();
+            }
+        }
 
         $timetable->update($validated);
 
@@ -156,6 +215,12 @@ class TimetableController extends Controller
     public function destroy(Timetable $timetable): RedirectResponse
     {
         abort_unless(auth()->user()->can('manage timetables'), 403);
+
+        $schoolId = $this->schoolId();
+        abort_unless(
+            SchoolClass::where('id', $timetable->class_id)->where('school_id', $schoolId)->exists(),
+            403
+        );
 
         $timetable->delete();
 
@@ -170,7 +235,7 @@ class TimetableController extends Controller
     {
         abort_unless(auth()->user()->can('manage timetables'), 403);
 
-        $schoolId = auth()->user()->school_id;
+        $schoolId = $this->schoolId();
         $periods  = TimetablePeriod::where('school_id', $schoolId)->orderBy('sort_order')->get();
 
         return view('timetables.periods', compact('periods'));
@@ -180,15 +245,18 @@ class TimetableController extends Controller
     {
         abort_unless(auth()->user()->can('manage timetables'), 403);
 
+        $schoolId = $this->schoolId();
+
         $validated = $request->validate([
-            'name'       => 'required|string|max:50',
-            'start_time' => 'required|date_format:H:i',
-            'end_time'   => 'required|date_format:H:i|after:start_time',
-            'is_break'   => 'boolean',
-            'sort_order' => 'required|integer|min:1',
+            'name'       => ['required', 'string', 'max:50',
+                Rule::unique('timetable_periods')->where('school_id', $schoolId)],
+            'start_time' => ['required', 'date_format:H:i'],
+            'end_time'   => ['required', 'date_format:H:i', 'after:start_time'],
+            'is_break'   => ['boolean'],
+            'sort_order' => ['required', 'integer', 'min:1'],
         ]);
 
-        $validated['school_id'] = auth()->user()->school_id;
+        $validated['school_id'] = $schoolId;
         $validated['is_break']  = $request->boolean('is_break');
 
         TimetablePeriod::create($validated);
@@ -199,14 +267,15 @@ class TimetableController extends Controller
     public function updatePeriod(Request $request, TimetablePeriod $period): RedirectResponse
     {
         abort_unless(auth()->user()->can('manage timetables'), 403);
-        abort_unless($period->school_id == auth()->user()->school_id, 403);
+        abort_unless($period->school_id == $this->schoolId(), 403);
 
         $validated = $request->validate([
-            'name'       => 'required|string|max:50',
-            'start_time' => 'required|date_format:H:i',
-            'end_time'   => 'required|date_format:H:i|after:start_time',
-            'is_break'   => 'boolean',
-            'sort_order' => 'required|integer|min:1',
+            'name'       => ['required', 'string', 'max:50',
+                Rule::unique('timetable_periods')->where('school_id', $period->school_id)->ignore($period->id)],
+            'start_time' => ['required', 'date_format:H:i'],
+            'end_time'   => ['required', 'date_format:H:i', 'after:start_time'],
+            'is_break'   => ['boolean'],
+            'sort_order' => ['required', 'integer', 'min:1'],
         ]);
 
         $validated['is_break'] = $request->boolean('is_break');
@@ -218,10 +287,10 @@ class TimetableController extends Controller
     public function destroyPeriod(TimetablePeriod $period): RedirectResponse
     {
         abort_unless(auth()->user()->can('manage timetables'), 403);
-        abort_unless($period->school_id == auth()->user()->school_id, 403);
+        abort_unless($period->school_id == $this->schoolId(), 403);
 
-        if ($period->timetables()->exists()) {
-            return back()->with('error', 'Cannot delete period that is used in timetable slots.');
+        if ($period->timetables()->where('is_active', true)->exists()) {
+            return back()->with('error', 'Cannot delete a period that is used in active timetable slots.');
         }
 
         $period->delete();
@@ -236,7 +305,6 @@ class TimetableController extends Controller
     private function activeDays($entries): array
     {
         $days = $entries->pluck('day_of_week')->unique()->sort()->values()->toArray();
-        // Default to Mon-Fri if no entries
         return $days ?: [1, 2, 3, 4, 5];
     }
 
@@ -246,7 +314,8 @@ class TimetableController extends Controller
             ->whereHas('roles', fn($q) => $q->whereIn('name', [
                 'teacher', 'principal', 'vice-principal', 'school-admin',
             ]))
-            ->orderBy('name')
+            ->orderBy('last_name')
+            ->orderBy('first_name')
             ->get();
     }
 }

@@ -118,6 +118,7 @@ class RolesPermissionsSeeder extends Seeder
                 'send messages', 'view messages', 'manage events', 'view disciplinary records',
                 'create disciplinary records', 'edit disciplinary records', 'generate reports',
                 'export reports', 'view audit logs', 'view exams', 'manage exams',
+                'view timetables', 'manage timetables',
                 'view feeding', 'manage feeding', 'record feeding',
             ],
             'vice-principal' => [
@@ -128,6 +129,7 @@ class RolesPermissionsSeeder extends Seeder
                 'create announcements', 'send messages', 'view messages', 'manage events',
                 'view disciplinary records', 'create disciplinary records',
                 'view exams', 'manage exams',
+                'view timetables', 'manage timetables',
                 'view feeding', 'manage feeding', 'record feeding',
             ],
             'teacher' => [

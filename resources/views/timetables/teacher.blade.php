@@ -8,9 +8,19 @@
         <h1 class="page-title">Teacher Timetable</h1>
         <p class="page-subtitle">Weekly schedule by teacher</p>
     </div>
-    @can('edit timetables')
-    <a href="{{ route('timetables.periods') }}" class="btn-secondary">Manage Periods</a>
-    @endcan
+    <div class="flex gap-2">
+        @if($selectedTeacherId && $periods->isNotEmpty())
+        <button onclick="window.print()" class="btn-secondary print:hidden">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+            </svg>
+            Print
+        </button>
+        @endif
+        @can('manage timetables')
+        <a href="{{ route('timetables.periods') }}" class="btn-secondary print:hidden">Manage Periods</a>
+        @endcan
+    </div>
 </div>
 
 {{-- View switcher + filters --}}
@@ -44,7 +54,7 @@
                 <select name="teacher_id" class="form-select text-sm" onchange="this.form.submit()">
                     <option value="">— Select teacher —</option>
                     @foreach($teachers as $teacher)
-                    <option value="{{ $teacher->id }}" @selected($selectedTeacherId == $teacher->id)>{{ $teacher->name }}</option>
+                    <option value="{{ $teacher->id }}" @selected($selectedTeacherId == $teacher->id)>{{ $teacher->full_name }}</option>
                     @endforeach
                 </select>
             </div>
