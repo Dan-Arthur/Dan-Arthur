@@ -11,6 +11,7 @@ use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\EnrolmentController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\StaffAttendanceController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EventController;
@@ -241,6 +242,19 @@ Route::middleware(['auth'])->group(function () {
     Route::post('payments', [PaymentController::class, 'store'])->name('payments.store');
     Route::get('payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
     Route::patch('payments/{payment}/reverse', [PaymentController::class, 'reverse'])->name('payments.reverse');
+
+    // ============================================================
+    // FINANCE: EXPENSES
+    // ============================================================
+    Route::get('expenses', [ExpenseController::class, 'index'])->name('expenses.index');
+    Route::get('expenses/create', [ExpenseController::class, 'create'])->name('expenses.create');
+    Route::post('expenses', [ExpenseController::class, 'store'])->name('expenses.store');
+    Route::get('expenses/{expense}', [ExpenseController::class, 'show'])->name('expenses.show');
+    Route::get('expenses/{expense}/edit', [ExpenseController::class, 'edit'])->name('expenses.edit');
+    Route::put('expenses/{expense}', [ExpenseController::class, 'update'])->name('expenses.update');
+    Route::patch('expenses/{expense}/approve', [ExpenseController::class, 'approve'])->name('expenses.approve');
+    Route::patch('expenses/{expense}/reject', [ExpenseController::class, 'reject'])->name('expenses.reject');
+    Route::delete('expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
 
     // ============================================================
     // HR: EMPLOYEES

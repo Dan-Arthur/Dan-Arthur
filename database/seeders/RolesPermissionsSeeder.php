@@ -57,6 +57,7 @@ class RolesPermissionsSeeder extends Seeder
             'view fees', 'manage fee structures', 'create invoices', 'edit invoices',
             'record payments', 'view payments', 'generate receipts', 'view financial reports',
             'manage scholarships', 'manage discounts',
+            'view expenses', 'create expenses', 'manage expenses', 'approve expenses',
 
             // HR
             'view staff', 'create staff', 'edit staff', 'delete staff',
@@ -104,7 +105,8 @@ class RolesPermissionsSeeder extends Seeder
                 'view staff attendance',
                 'view assessments', 'view marks', 'view results', 'approve results', 'publish results',
                 'view result reports', 'generate report cards', 'view fees', 'view payments',
-                'view financial reports', 'view library', 'view transport', 'view inventory',
+                'view financial reports', 'view expenses', 'approve expenses',
+                'view library', 'view transport', 'view inventory',
                 'view announcements', 'create announcements', 'manage announcements',
                 'send messages', 'view messages', 'manage events', 'view disciplinary records',
                 'create disciplinary records', 'edit disciplinary records', 'generate reports',
@@ -129,7 +131,8 @@ class RolesPermissionsSeeder extends Seeder
                 'view dashboard', 'view students', 'view fees', 'manage fee structures',
                 'create invoices', 'edit invoices', 'record payments', 'view payments',
                 'generate receipts', 'view financial reports', 'manage scholarships',
-                'manage discounts', 'generate reports', 'export reports',
+                'manage discounts', 'view expenses', 'create expenses', 'manage expenses',
+                'generate reports', 'export reports',
             ],
             'hr-officer' => [
                 'view dashboard', 'view staff', 'create staff', 'edit staff',
