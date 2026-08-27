@@ -359,24 +359,68 @@
                             </td>
                             <td class="py-2 pr-4 text-gray-500 text-xs">
                                 {{ $term->start_date?->format('d M Y') }} — {{ $term->end_date?->format('d M Y') }}
+                                @if($term->result_release_date)
+                                    <br><span class="text-gray-400">Results: {{ $term->result_release_date->format('d M Y') }}</span>
+                                @endif
                             </td>
                             <td class="py-2 pr-4">
                                 @php $tSc = ['upcoming'=>'badge-gray','active'=>'badge-info','completed'=>'badge-purple'][$term->status] ?? 'badge-gray'; @endphp
                                 <span class="badge {{ $tSc }} text-xs">{{ ucfirst($term->status) }}</span>
                             </td>
-                            <td class="py-2">
+                            <td class="py-2" x-data="{ editTerm: false }">
                                 <div class="flex items-center gap-1">
+                                    <button @click="editTerm = !editTerm" class="text-xs text-gray-500 hover:text-blue-600 hover:underline">Edit</button>
                                     @if(!$term->is_current)
                                     <form method="POST" action="{{ route('settings.terms.set-current', $term) }}">
                                         @csrf @method('PATCH')
-                                        <button type="submit" class="text-xs text-blue-600 hover:underline whitespace-nowrap">Set Current</button>
+                                        <button type="submit" class="text-xs text-blue-600 hover:underline whitespace-nowrap ml-1">Set Current</button>
                                     </form>
                                     @endif
                                     <form method="POST" action="{{ route('settings.terms.destroy', $term) }}"
                                         onsubmit="return confirm('Delete term {{ addslashes($term->name) }}?')">
                                         @csrf @method('DELETE')
-                                        <button type="submit" class="text-xs text-red-500 hover:underline ml-2"
+                                        <button type="submit" class="text-xs text-red-500 hover:underline ml-1"
                                             @if($term->is_current) disabled @endif>Delete</button>
+                                    </form>
+                                </div>
+                                {{-- Inline edit form --}}
+                                <div x-show="editTerm" x-collapse class="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+                                    <form method="POST" action="{{ route('settings.terms.update', $term) }}">
+                                        @csrf @method('PUT')
+                                        <div class="grid grid-cols-2 gap-2 text-xs">
+                                            <div>
+                                                <label class="form-label text-xs">Name</label>
+                                                <input type="text" name="name" value="{{ $term->name }}" class="form-input text-xs py-1" required>
+                                            </div>
+                                            <div>
+                                                <label class="form-label text-xs">Sequence</label>
+                                                <input type="number" name="sequence" value="{{ $term->sequence }}" class="form-input text-xs py-1" min="1" required>
+                                            </div>
+                                            <div>
+                                                <label class="form-label text-xs">Start Date</label>
+                                                <input type="date" name="start_date" value="{{ $term->start_date?->toDateString() }}" class="form-input text-xs py-1" required>
+                                            </div>
+                                            <div>
+                                                <label class="form-label text-xs">End Date</label>
+                                                <input type="date" name="end_date" value="{{ $term->end_date?->toDateString() }}" class="form-input text-xs py-1" required>
+                                            </div>
+                                            <div>
+                                                <label class="form-label text-xs">Results Out</label>
+                                                <input type="date" name="result_release_date" value="{{ $term->result_release_date?->toDateString() }}" class="form-input text-xs py-1">
+                                            </div>
+                                            <div>
+                                                <label class="form-label text-xs">Status</label>
+                                                <select name="status" class="form-select text-xs py-1">
+                                                    <option value="upcoming"  @selected($term->status==='upcoming')>Upcoming</option>
+                                                    <option value="active"    @selected($term->status==='active')>Active</option>
+                                                    <option value="completed" @selected($term->status==='completed')>Completed</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="flex gap-1 mt-2">
+                                            <button type="submit" class="btn-primary text-xs py-1 px-2">Save</button>
+                                            <button type="button" @click="editTerm = false" class="btn-secondary text-xs py-1 px-2">Cancel</button>
+                                        </div>
                                     </form>
                                 </div>
                             </td>
