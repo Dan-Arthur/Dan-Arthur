@@ -82,6 +82,9 @@ class RolesPermissionsSeeder extends Seeder
             'send messages', 'view messages',
             'manage events',
 
+            // Exams
+            'view exams', 'manage exams',
+
             // Discipline
             'view disciplinary records', 'create disciplinary records',
             'edit disciplinary records', 'delete disciplinary records',
@@ -111,7 +114,7 @@ class RolesPermissionsSeeder extends Seeder
                 'view announcements', 'create announcements', 'manage announcements',
                 'send messages', 'view messages', 'manage events', 'view disciplinary records',
                 'create disciplinary records', 'edit disciplinary records', 'generate reports',
-                'export reports', 'view audit logs',
+                'export reports', 'view audit logs', 'view exams', 'manage exams',
             ],
             'vice-principal' => [
                 'view dashboard', 'view students', 'view student profiles', 'view staff',
@@ -120,13 +123,14 @@ class RolesPermissionsSeeder extends Seeder
                 'view result reports', 'generate report cards', 'view announcements',
                 'create announcements', 'send messages', 'view messages', 'manage events',
                 'view disciplinary records', 'create disciplinary records',
+                'view exams', 'manage exams',
             ],
             'teacher' => [
                 'view dashboard', 'view students', 'view student profiles', 'view classes',
                 'view subjects', 'view attendance', 'take attendance', 'view attendance reports',
                 'view assessments', 'create assessments', 'edit assessments', 'enter marks',
                 'view marks', 'view results', 'view result reports', 'view announcements',
-                'send messages', 'view messages', 'view timetables',
+                'send messages', 'view messages', 'view timetables', 'view exams',
             ],
             'accountant' => [
                 'view dashboard', 'view students', 'view fees', 'manage fee structures',

@@ -30,6 +30,7 @@ use App\Http\Controllers\SmsAlertController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ResultController;
 use App\Http\Controllers\TimetableController;
+use App\Http\Controllers\ExamController;
 use App\Http\Controllers\TransportController;
 use App\Http\Controllers\GuardianController;
 use App\Http\Controllers\ProfileController;
@@ -183,6 +184,15 @@ Route::middleware(['auth'])->group(function () {
     // ============================================================
     // TIMETABLES
     // ============================================================
+    // Exams
+    Route::get('exams/terms', [ExamController::class, 'termsByYear'])->name('exams.terms');
+    Route::get('exams', [ExamController::class, 'index'])->name('exams.index');
+    Route::get('exams/create', [ExamController::class, 'create'])->name('exams.create');
+    Route::post('exams', [ExamController::class, 'store'])->name('exams.store');
+    Route::get('exams/{exam}/edit', [ExamController::class, 'edit'])->name('exams.edit');
+    Route::put('exams/{exam}', [ExamController::class, 'update'])->name('exams.update');
+    Route::delete('exams/{exam}', [ExamController::class, 'destroy'])->name('exams.destroy');
+
     Route::get('timetables', [TimetableController::class, 'index'])->name('timetables.index');
     Route::get('timetables/teacher', [TimetableController::class, 'teacher'])->name('timetables.teacher');
     Route::post('timetables', [TimetableController::class, 'store'])->name('timetables.store');

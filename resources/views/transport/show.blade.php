@@ -72,6 +72,7 @@
         <h2 class="card-title mb-4">Assign Student</h2>
         <form method="POST" action="{{ route('transport.assign', $route) }}" class="space-y-3">
             @csrf
+            <input type="hidden" name="academic_year_id" value="{{ $currentYear?->id }}">
             <div class="form-group">
                 <label class="form-label">Student <span class="required">*</span></label>
                 <select name="student_id" class="form-select" required>
@@ -84,9 +85,17 @@
             <div class="form-group">
                 <label class="form-label">Pick-up Stop</label>
                 <select name="stop_id" class="form-select">
-                    <option value="">— Select Stop —</option>
+                    <option value="">— No Specific Stop —</option>
                     @foreach ($route->stops->sortBy('sequence') as $stop)
                         <option value="{{ $stop->id }}">{{ $stop->sequence }}. {{ $stop->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Direction <span class="required">*</span></label>
+                <select name="direction" class="form-select" required>
+                    @foreach (\App\Models\TransportRoute::DIRECTIONS as $k => $v)
+                        <option value="{{ $k }}" {{ $k === 'both' ? 'selected' : '' }}>{{ $v }}</option>
                     @endforeach
                 </select>
             </div>
@@ -109,7 +118,9 @@
                         <th>Student</th>
                         <th>Admission #</th>
                         <th>Class</th>
-                        <th>Pick-up Stop</th>
+                        <th>Stop</th>
+                        <th>Direction</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -119,6 +130,15 @@
                         <td class="font-mono">{{ $assignment->student->admission_number }}</td>
                         <td>{{ $assignment->student->schoolClass?->name ?? '—' }}</td>
                         <td>{{ $assignment->stop?->name ?? '—' }}</td>
+                        <td>{{ \App\Models\TransportRoute::DIRECTIONS[$assignment->direction] ?? $assignment->direction }}</td>
+                        <td class="table-actions">
+                            @can('assign transport')
+                            <form method="POST" action="{{ route('transport.assign.remove', $assignment) }}" onsubmit="return confirm('Remove this student from the route?')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="action-link text-red-500">Remove</button>
+                            </form>
+                            @endcan
+                        </td>
                     </tr>
                     @endforeach
                 </tbody>
