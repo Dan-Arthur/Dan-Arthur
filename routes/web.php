@@ -31,6 +31,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ResultController;
 use App\Http\Controllers\TimetableController;
 use App\Http\Controllers\ExamController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TransportController;
 use App\Http\Controllers\GuardianController;
 use App\Http\Controllers\ProfileController;
@@ -455,6 +456,13 @@ Route::middleware(['auth'])->group(function () {
     // ============================================================
     // AUDIT LOG
     // ============================================================
+    // Reports & Analytics
+    Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('reports/financial', [ReportController::class, 'financial'])->name('reports.financial');
+    Route::get('reports/defaulters', [ReportController::class, 'defaulters'])->name('reports.defaulters');
+    Route::get('reports/attendance', [ReportController::class, 'attendance'])->name('reports.attendance');
+    Route::get('reports/enrollment', [ReportController::class, 'enrollment'])->name('reports.enrollment');
+
     Route::get('audit', [AuditController::class, 'index'])->name('audit.index');
     Route::get('audit/{audit}', [AuditController::class, 'show'])->name('audit.show');
 });
