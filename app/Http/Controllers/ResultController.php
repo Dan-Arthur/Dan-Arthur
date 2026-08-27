@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AcademicYear;
 use App\Models\Assessment;
 use App\Models\Enrolment;
+use App\Models\GradingScale;
 use App\Models\Result;
 use App\Models\ResultSubjectScore;
 use App\Models\SchoolClass;
@@ -106,7 +107,13 @@ class ResultController extends Controller
 
         $classSize = $enrolments->count();
 
-        DB::transaction(function () use ($enrolments, $assessments, $classId, $yearId, $termId, $schoolId, $classSize) {
+        // Load the school's default grading scale (with bands) for grade assignment
+        $gradingScale = GradingScale::where('school_id', $schoolId)
+            ->where('is_default', true)
+            ->with('bands')
+            ->first();
+
+        DB::transaction(function () use ($enrolments, $assessments, $classId, $yearId, $termId, $schoolId, $classSize, $gradingScale) {
             // Build per-student, per-subject score map
             $subjectScoreMap = [];
             foreach ($assessments as $assessment) {
@@ -139,23 +146,31 @@ class ResultController extends Controller
 
                 foreach ($studentSubjects as $subjectId => $scores) {
                     $avg = count($scores) ? array_sum($scores) / count($scores) : 0;
-                    $subjectTotals[$subjectId] = round($avg, 2);
+                    $total = round($avg, 2);
+                    $subjectTotals[$subjectId] = $total;
+
+                    $band = $gradingScale?->gradeFor($total);
 
                     ResultSubjectScore::updateOrCreate(
                         ['result_id' => $result->id, 'subject_id' => $subjectId],
                         [
                             'student_id'  => $student->id,
-                            'total_score' => round($avg, 2),
+                            'total_score' => $total,
+                            'grade'       => $band?->grade,
+                            'remark'      => $band?->remark,
                         ]
                     );
                 }
 
                 $overallAvg = count($subjectTotals) ? array_sum($subjectTotals) / count($subjectTotals) : null;
+                $overallBand = ($overallAvg !== null && $gradingScale) ? $gradingScale->gradeFor(round($overallAvg, 2)) : null;
 
                 $result->update([
-                    'total_score'       => $overallAvg ? round(array_sum($subjectTotals), 2) : null,
-                    'average_score'     => $overallAvg ? round($overallAvg, 2) : null,
-                    'subjects_offered'  => count($subjectTotals),
+                    'total_score'      => $overallAvg ? round(array_sum($subjectTotals), 2) : null,
+                    'average_score'    => $overallAvg ? round($overallAvg, 2) : null,
+                    'subjects_offered' => count($subjectTotals),
+                    'overall_grade'    => $overallBand?->grade,
+                    'overall_remark'   => $overallBand?->remark,
                 ]);
 
                 $studentAverages[$student->id] = $overallAvg;

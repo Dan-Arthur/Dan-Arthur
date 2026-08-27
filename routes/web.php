@@ -12,6 +12,7 @@ use App\Http\Controllers\EnrolmentController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\GradingScaleController;
 use App\Http\Controllers\StaffAttendanceController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EventController;
@@ -209,6 +210,17 @@ Route::middleware(['auth'])->group(function () {
     Route::put('results/{result}/comment', [ResultController::class, 'updateComment'])->name('results.comment');
     Route::patch('results/{result}/approve', [ResultController::class, 'approve'])->name('results.approve');
     Route::patch('results/{result}/publish', [ResultController::class, 'publish'])->name('results.publish');
+
+    // ============================================================
+    // GRADING SCALES
+    // ============================================================
+    Route::get('grading-scales', [GradingScaleController::class, 'index'])->name('grading-scales.index');
+    Route::get('grading-scales/create', [GradingScaleController::class, 'create'])->name('grading-scales.create');
+    Route::post('grading-scales', [GradingScaleController::class, 'store'])->name('grading-scales.store');
+    Route::get('grading-scales/{gradingScale}/edit', [GradingScaleController::class, 'edit'])->name('grading-scales.edit');
+    Route::put('grading-scales/{gradingScale}', [GradingScaleController::class, 'update'])->name('grading-scales.update');
+    Route::patch('grading-scales/{gradingScale}/set-default', [GradingScaleController::class, 'setDefault'])->name('grading-scales.set-default');
+    Route::delete('grading-scales/{gradingScale}', [GradingScaleController::class, 'destroy'])->name('grading-scales.destroy');
 
     // ============================================================
     // FINANCE: FEES
