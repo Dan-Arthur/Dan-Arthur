@@ -15,22 +15,36 @@ class Subject extends Model
         'extra_curricular' => ['label' => 'Extra-Curricular', 'color' => 'badge-success'],
     ];
 
+    const LEVELS = [
+        'early_childhood' => 'Creche / Nursery',
+        'kindergarten'    => 'Kindergarten (KG 1–2)',
+        'primary'         => 'Primary (P1–P6)',
+        'jhs'             => 'Junior High School (JHS 1–3)',
+        'shs'             => 'Senior High School (SHS 1–3)',
+    ];
+
     const CATEGORIES = [
-        'science'       => 'Science',
-        'arts'          => 'Arts',
-        'language'      => 'Language',
-        'mathematics'   => 'Mathematics',
-        'social_studies'=> 'Social Studies',
-        'vocational'    => 'Vocational',
-        'technology'    => 'Technology',
-        'physical_edu'  => 'Physical Education',
-        'religious'     => 'Religious Studies',
-        'other'         => 'Other',
+        'language'        => 'Language',
+        'mathematics'     => 'Mathematics',
+        'science'         => 'Science',
+        'social_studies'  => 'Social Studies',
+        'arts'            => 'Creative Arts',
+        'religious'       => 'Religious Studies',
+        'physical_edu'    => 'Physical Education',
+        'technology'      => 'Technology',
+        'business'        => 'Business',
+        'home_economics'  => 'Home Economics',
+        'visual_arts'     => 'Visual Arts',
+        'performing_arts' => 'Performing Arts',
+        'technical'       => 'Technical / Engineering',
+        'vocational'      => 'Vocational',
+        'early_childhood' => 'Early Childhood Dev.',
+        'other'           => 'Other',
     ];
 
     protected $fillable = [
         'school_id', 'department_id', 'name', 'code', 'type',
-        'category', 'credit_hours', 'has_practical', 'is_active',
+        'category', 'level', 'credit_hours', 'has_practical', 'is_active',
     ];
 
     protected function casts(): array
@@ -77,6 +91,11 @@ class Subject extends Model
     public function getCategoryLabelAttribute(): string
     {
         return self::CATEGORIES[$this->category] ?? ucfirst(str_replace('_', ' ', $this->category ?? ''));
+    }
+
+    public function getLevelLabelAttribute(): string
+    {
+        return self::LEVELS[$this->level] ?? 'Universal';
     }
 
     public function scopeForSchool($query, int $schoolId)

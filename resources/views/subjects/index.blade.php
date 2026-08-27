@@ -43,6 +43,15 @@
                 class="form-input text-sm" placeholder="Name or code…">
         </div>
         <div>
+            <label class="form-label text-xs">Level</label>
+            <select name="level" class="form-select text-sm">
+                <option value="">All Levels</option>
+                @foreach(\App\Models\Subject::LEVELS as $key => $label)
+                <option value="{{ $key }}" @selected(request('level') === $key)>{{ $label }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div>
             <label class="form-label text-xs">Category</label>
             <select name="category" class="form-select text-sm">
                 <option value="">All Categories</option>
@@ -70,7 +79,7 @@
             </select>
         </div>
         <button type="submit" class="btn-primary text-sm px-3 py-2">Filter</button>
-        @if(request()->hasAny(['search','category','department_id']))
+        @if(request()->hasAny(['search','level','category','department_id']))
         <a href="{{ route('subjects.index') }}" class="btn-secondary text-sm">Clear</a>
         @endif
     </form>
@@ -95,6 +104,7 @@
                 <tr>
                     <th>Subject</th>
                     <th>Code</th>
+                    <th>Level</th>
                     <th>Type</th>
                     <th>Category</th>
                     <th>Department</th>
@@ -115,6 +125,7 @@
                         </div>
                     </td>
                     <td class="font-mono text-xs text-gray-500">{{ $subject->code }}</td>
+                    <td class="text-xs text-gray-500">{{ $subject->level ? $subject->level_label : '—' }}</td>
                     <td><span class="badge {{ $subject->type_color }}">{{ $subject->type_label }}</span></td>
                     <td class="text-sm text-gray-500">{{ $subject->category_label ?: '—' }}</td>
                     <td class="text-sm text-gray-500">{{ $subject->department->name ?? '—' }}</td>

@@ -41,6 +41,8 @@ class SubjectController extends Controller
                   ->orWhere('code', 'like', "%{$request->search}%"))
             ->when($request->type, fn($q) => $q->where('type', $request->type))
             ->when($request->category, fn($q) => $q->where('category', $request->category))
+            ->when($request->level, fn($q) => $q->where(fn($q2) =>
+                $q2->where('level', $request->level)->orWhereNull('level')))
             ->when($request->department_id, fn($q) => $q->where('department_id', $request->department_id))
             ->when($request->status === 'inactive', fn($q) => $q->where('is_active', false))
             ->when($request->status !== 'inactive', fn($q) => $q->where('is_active', true))
@@ -78,6 +80,7 @@ class SubjectController extends Controller
                 Rule::unique('subjects')->where('school_id', $schoolId)],
             'type'          => ['required', Rule::in(array_keys(Subject::TYPES))],
             'category'      => ['nullable', Rule::in(array_keys(Subject::CATEGORIES))],
+            'level'         => ['nullable', Rule::in(array_keys(Subject::LEVELS))],
             'department_id' => ['nullable', 'integer',
                 Rule::exists('departments', 'id')->where('school_id', $schoolId)],
             'credit_hours'  => ['required', 'integer', 'min:1', 'max:10'],
@@ -161,6 +164,7 @@ class SubjectController extends Controller
                 Rule::unique('subjects')->where('school_id', $schoolId)->ignore($subject->id)],
             'type'          => ['required', Rule::in(array_keys(Subject::TYPES))],
             'category'      => ['nullable', Rule::in(array_keys(Subject::CATEGORIES))],
+            'level'         => ['nullable', Rule::in(array_keys(Subject::LEVELS))],
             'department_id' => ['nullable', 'integer',
                 Rule::exists('departments', 'id')->where('school_id', $schoolId)],
             'credit_hours'  => ['required', 'integer', 'min:1', 'max:10'],

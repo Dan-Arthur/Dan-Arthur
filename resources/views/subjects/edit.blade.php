@@ -49,6 +49,16 @@
         </div>
 
         <div>
+            <label class="form-label">Level</label>
+            <select name="level" class="form-select">
+                <option value="">— Universal (all levels) —</option>
+                @foreach(\App\Models\Subject::LEVELS as $key => $label)
+                <option value="{{ $key }}" @selected(old('level', $subject->level) === $key)>{{ $label }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div>
             <label class="form-label">Category</label>
             <select name="category" class="form-select">
                 <option value="">— None —</option>

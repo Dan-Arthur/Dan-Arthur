@@ -49,6 +49,17 @@
         </div>
 
         <div>
+            <label class="form-label">Level</label>
+            <select name="level" class="form-select">
+                <option value="">— Universal (all levels) —</option>
+                @foreach(\App\Models\Subject::LEVELS as $key => $label)
+                <option value="{{ $key }}" @selected(old('level') === $key)>{{ $label }}</option>
+                @endforeach
+            </select>
+            <p class="text-xs text-gray-400 mt-1">Leave blank if the subject is taught across multiple levels.</p>
+        </div>
+
+        <div>
             <label class="form-label">Category</label>
             <select name="category" class="form-select">
                 <option value="">— None —</option>
