@@ -208,6 +208,9 @@ class TransportController extends Controller
         $validated = $request->validate([
             'registration_number'    => 'required|string|max:30',
             'make'                   => 'nullable|string|max:100',
+            'model'                  => 'nullable|string|max:100',
+            'year'                   => 'nullable|integer|min:1980|max:' . (date('Y') + 1),
+            'type'                   => 'required|in:bus,van,car',
             'capacity'               => 'required|integer|min:1',
             'status'                 => 'required|in:active,inactive,maintenance',
             'insurance_expiry'       => 'nullable|date',
@@ -219,6 +222,23 @@ class TransportController extends Controller
         $vehicle->update($validated);
 
         return redirect()->route('transport.vehicles')->with('success', 'Vehicle updated.');
+    }
+
+    public function updateDriver(Request $request, Driver $driver): RedirectResponse
+    {
+        abort_unless(auth()->user()->can('manage vehicles'), 403);
+        abort_unless($driver->school_id == auth()->user()->school_id, 403);
+
+        $validated = $request->validate([
+            'licence_number' => 'nullable|string|max:50',
+            'licence_class'  => 'nullable|string|max:20',
+            'licence_expiry' => 'nullable|date',
+            'status'         => 'required|in:active,inactive',
+        ]);
+
+        $driver->update($validated);
+
+        return redirect()->route('transport.vehicles')->with('success', 'Driver updated.');
     }
 
     public function storeDriver(Request $request): RedirectResponse

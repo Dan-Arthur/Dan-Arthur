@@ -374,7 +374,9 @@ Route::middleware(['auth'])->group(function () {
     // ============================================================
     Route::get('transport/vehicles', [TransportController::class, 'vehicles'])->name('transport.vehicles');
     Route::post('transport/vehicles', [TransportController::class, 'storeVehicle'])->name('transport.vehicles.store');
+    Route::put('transport/vehicles/{vehicle}', [TransportController::class, 'updateVehicle'])->name('transport.vehicles.update');
     Route::post('transport/drivers', [TransportController::class, 'storeDriver'])->name('transport.drivers.store');
+    Route::put('transport/drivers/{driver}', [TransportController::class, 'updateDriver'])->name('transport.drivers.update');
     Route::get('transport', [TransportController::class, 'index'])->name('transport.index');
     Route::post('transport', [TransportController::class, 'store'])->name('transport.store');
     Route::get('transport/{route}', [TransportController::class, 'show'])->name('transport.show');
