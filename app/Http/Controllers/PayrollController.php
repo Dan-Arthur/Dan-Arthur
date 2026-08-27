@@ -6,6 +6,7 @@ use App\Models\Employee;
 use App\Models\PayrollRun;
 use App\Models\Payslip;
 use App\Models\SmsAlert;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -235,6 +236,23 @@ class PayrollController extends Controller
         $currency = auth()->user()->school->currency_symbol ?? '₵';
 
         return view('payroll.payslip', compact('payslip', 'currency'));
+    }
+
+    public function payslipPdf(Payslip $payslip): \Illuminate\Http\Response
+    {
+        abort_unless(auth()->user()->can('view payroll'), 403);
+        abort_unless($payslip->school_id == $this->schoolId(), 403);
+
+        $payslip->load(['employee.position', 'employee.department', 'payrollRun']);
+        $school   = auth()->user()->school;
+        $currency = $school->currency_symbol ?? '₵';
+
+        $pdf = Pdf::loadView('payroll.payslip-pdf', compact('payslip', 'school', 'currency'))
+            ->setPaper('a4', 'portrait');
+
+        $filename = 'Payslip-' . str($payslip->employee->full_name)->slug() . '-' . str($payslip->payrollRun->title)->slug() . '.pdf';
+
+        return $pdf->download($filename);
     }
 
     public function updatePayslip(Request $request, Payslip $payslip): RedirectResponse

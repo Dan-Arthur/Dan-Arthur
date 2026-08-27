@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Receipt;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -139,6 +140,48 @@ class PaymentController extends Controller
         $methods = Invoice::METHODS;
 
         return view('payments.show', compact('payment', 'methods'));
+    }
+
+    public function receiptPdf(Payment $payment): \Illuminate\Http\Response
+    {
+        abort_unless(auth()->user()->can('view payments'), 403);
+        abort_unless($payment->school_id == auth()->user()->school_id, 403);
+
+        $payment->load(['student', 'invoice.academicYear', 'invoice.term', 'receivedBy', 'receipt']);
+
+        $school   = auth()->user()->school;
+        $currency = $school->currency_symbol ?? '₵';
+        $amountWords = $this->numberToWords($payment->amount, $currency);
+
+        $ref = $payment->receipt->receipt_number ?? $payment->payment_number;
+
+        $pdf = Pdf::loadView('payments.receipt-pdf', compact('payment', 'school', 'currency', 'amountWords'))
+            ->setPaper('a5', 'portrait');
+
+        return $pdf->download("Receipt-{$ref}.pdf");
+    }
+
+    private function numberToWords(float $amount, string $currencySymbol = '₵'): string
+    {
+        $ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
+                 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen',
+                 'Seventeen', 'Eighteen', 'Nineteen'];
+        $tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+        $convert = function (int $n) use ($ones, $tens, &$convert): string {
+            if ($n === 0) return '';
+            if ($n < 20) return $ones[$n] . ' ';
+            if ($n < 100) return $tens[(int)($n / 10)] . ' ' . ($n % 10 ? $ones[$n % 10] . ' ' : '');
+            if ($n < 1000) return $ones[(int)($n / 100)] . ' Hundred ' . $convert($n % 100);
+            if ($n < 1_000_000) return $convert((int)($n / 1000)) . 'Thousand ' . $convert($n % 1000);
+            return $convert((int)($n / 1_000_000)) . 'Million ' . $convert($n % 1_000_000);
+        };
+
+        $whole  = (int) floor($amount);
+        $cents  = (int) round(($amount - $whole) * 100);
+        $words  = trim($convert($whole)) ?: 'Zero';
+
+        return $words . ($cents > 0 ? ' and ' . $cents . '/100' : '') . ' ' . $currencySymbol . ' Only';
     }
 
     public function reverse(Payment $payment): RedirectResponse

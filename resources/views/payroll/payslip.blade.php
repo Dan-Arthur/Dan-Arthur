@@ -7,6 +7,7 @@
         <h1 class="page-title">{{ $payslip->employee->full_name }}</h1>
         <p class="page-subtitle">{{ $payslip->payrollRun->title }} · {{ $payslip->employee->employee_number }}</p>
     </div>
+    <a href="{{ route('payroll.payslip.pdf', $payslip) }}" class="btn btn-ghost" target="_blank">Download PDF</a>
     <a href="{{ route('payroll.show', $payslip->payroll_run_id) }}" class="btn btn-ghost">← Back to Run</a>
 </div>
 

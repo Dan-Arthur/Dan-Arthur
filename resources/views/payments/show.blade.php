@@ -18,6 +18,7 @@
         </form>
         @endif
         @endcan
+        <a href="{{ route('payments.receipt-pdf', $payment) }}" class="btn btn-ghost" target="_blank">Download Receipt</a>
         <a href="{{ route('invoices.show', $payment->invoice) }}" class="btn btn-ghost">View Invoice</a>
         <a href="{{ route('payments.index') }}" class="btn btn-ghost">Back</a>
     </div>

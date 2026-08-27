@@ -10,6 +10,7 @@ use App\Models\Scholarship;
 use App\Models\Student;
 use App\Models\StudentScholarship;
 use App\Models\Term;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -215,6 +216,22 @@ class InvoiceController extends Controller
         $invoice->update(['status' => 'cancelled']);
 
         return back()->with('success', 'Invoice cancelled.');
+    }
+
+    public function pdf(Invoice $invoice): \Illuminate\Http\Response
+    {
+        abort_unless(auth()->user()->canany(['create invoices', 'edit invoices', 'record payments']), 403);
+        abort_unless($invoice->school_id == auth()->user()->school_id, 403);
+
+        $invoice->load(['student.classroom', 'academicYear', 'term', 'items.feeCategory', 'createdBy']);
+
+        $school   = $invoice->school;
+        $currency = $school->currency_symbol ?? '₵';
+
+        $pdf = Pdf::loadView('invoices.pdf', compact('invoice', 'school', 'currency'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->download("Invoice-{$invoice->invoice_number}.pdf");
     }
 
     // --------------------------------------------------------

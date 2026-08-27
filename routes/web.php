@@ -260,6 +260,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('invoices', [InvoiceController::class, 'store'])->name('invoices.store');
     Route::get('invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
     Route::patch('invoices/{invoice}/cancel', [InvoiceController::class, 'cancel'])->name('invoices.cancel');
+    Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf');
 
     // ============================================================
     // FINANCE: PAYMENTS
@@ -269,6 +270,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('payments', [PaymentController::class, 'store'])->name('payments.store');
     Route::get('payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
     Route::patch('payments/{payment}/reverse', [PaymentController::class, 'reverse'])->name('payments.reverse');
+    Route::get('payments/{payment}/receipt-pdf', [PaymentController::class, 'receiptPdf'])->name('payments.receipt-pdf');
 
     // ============================================================
     // FINANCE: EXPENSES
@@ -404,6 +406,7 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('payroll/{payrollRun}/mark-paid', [PayrollController::class, 'markPaid'])->name('payroll.mark-paid');
     Route::get('payslips/{payslip}', [PayrollController::class, 'payslip'])->name('payroll.payslip');
     Route::put('payslips/{payslip}', [PayrollController::class, 'updatePayslip'])->name('payroll.payslip.update');
+    Route::get('payslips/{payslip}/pdf', [PayrollController::class, 'payslipPdf'])->name('payroll.payslip.pdf');
 
     // ============================================================
     // BULK SMS ALERTS

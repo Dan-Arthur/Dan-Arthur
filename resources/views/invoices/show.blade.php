@@ -22,6 +22,7 @@
         </form>
         @endif
         @endcan
+        <a href="{{ route('invoices.pdf', $invoice) }}" class="btn btn-ghost" target="_blank">Download PDF</a>
         <a href="{{ route('invoices.index') }}" class="btn btn-ghost">Back</a>
     </div>
 </div>
